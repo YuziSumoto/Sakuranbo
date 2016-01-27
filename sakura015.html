@@ -1,0 +1,105 @@
+<html>
+<head>
+
+  <style type="text/css">
+    .midashi  {background-color:cyan}
+    .text     {font-size:X-LARGE}
+    .button   {font-size:XX-LARGE}
+  </style>
+
+	<title>SAKURA010</title>
+</head>
+
+<body>
+	<form name="SAKURA015" action="/sakura015/">
+
+<TABLE Border="1" class="text">
+	<TR>
+		<TH class="midashi">居室番号</TH>
+		<TD>{{ LblRoom }}</TD>
+	</TR>
+	<TR>
+		<TH class="midashi">患者</TH>
+		<TD>
+			<select name="CmbKanzya" class="text">
+				{{ StrKanzya|safe }}
+			</select>
+		</TD>
+	</TR>
+	<TR>
+		<TH class="midashi">入退</TH>
+		<TD>
+			<select name="CmbNyutaiin" class="text">
+				{{ StrNyutaiin|safe }}
+			</select>
+		</TD>
+	</TR>
+	<TR>
+		<TH class="midashi">状況</TH>
+		<TD>
+			<input value="{{ Rec.TxtZyokyo }}" name="TxtZyokyo" class="text" />
+		</TD>
+	</TR>
+	<TR>
+		<TH class="midashi">入居日数</TH>
+		<TD>
+			<select name="CmbNissu" class="text">
+				{{ StrNissu|safe }}
+			</select>
+		</TD>
+	</TR>
+<!--
+	<TR>
+		<TH class="midashi">家賃</TH>
+		<TD></TD>
+	</TR>
+-->
+	<TR>
+		<TH class="midashi">備考</TH>
+		<TD>
+			<input value="{{ Rec.TxtBiko }}" name="TxtBiko" class="text" />
+		</TD>
+	</TR>
+	<TR>
+		<TH class="midashi">現金払い</TH>
+		<TD>
+			<select name="CmbGenkin" class="text">
+				{{ StrGenkin|safe }}
+			</select>
+		</TD>
+	</TR>
+
+	<TR>
+		<TH class="midashi" colspan="2">以下は入退で「特殊対応」選択時にのみ有効</TH>
+	</TR>
+
+	<TR>
+		<TH class="midashi">共益費(手入力）</TH>
+		<TD>
+			<input value="{{ Rec.TxtKyoeki }}" name="TxtKyoeki" class="text" />
+	</TD>
+	</TR>
+	<TR>
+		<TH class="midashi">管理費（手入力)</TH>
+		<TD>
+			<input value="{{ Rec.TxtKanri }}" name="TxtKanri" class="text" />
+		</TD>
+	</TR>
+
+</TABLE>
+
+<BR>
+
+<input type="submit" value = "中止" name="BtnSAKURA010" class="button">
+　
+<input type="submit" value = "決定" name="BtnKettei" class="button">
+
+<BR>
+
+<p	class="LblMsg">{{ LblMsg }}</p>
+
+
+</form>
+</body>
+
+</html>

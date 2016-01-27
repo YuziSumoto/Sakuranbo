@@ -1,0 +1,48 @@
+<html>
+<head>
+  <style type="text/css">
+    .midashi  {background-color:cyan}
+    .text     {font-size:X-LARGE}
+    .button   {font-size:XX-LARGE}
+  </style>
+	<title>SAKURA020</title>
+</head>
+
+<body>
+	<form name="SAKURA020" action="/sakura020/">
+
+<TABLE Border="1">
+	<TR>
+		<TH class="Midashi">番号</TH>
+		<TH class="Midashi">ＩＤ</TH>
+		<TH class="Midashi">入居者氏名</TH>
+		<TH class="Midashi">前月メータ</TH>
+		<TH class="Midashi">当月メータ</TH>
+		<TH class="Midashi">当月使用数</TH>
+		<TH class="Midashi">計算額</TH>
+		<TH class="Midashi">コメント</TH>
+		<TH class="Midashi">請求額</TH>
+		<TH class="Midashi">削除</TH>
+	</TR>
+
+	{{ strTable|safe }}
+
+</TABLE>
+
+<BR>
+
+<input type="button" value = "印刷"     onclick="window.open('/sakura115/{{ PrintParam|safe }}');" class="button">
+　
+<input type="button" value = "経理部印刷"     onclick="window.open('/sakura116/{{ PrintParam|safe }}');" class="button">
+　
+<input type="submit" value = "終了" name="BtnSAKURA000" class="button">
+
+<BR>
+
+<p	class="LblMsg">{{ LblMsg }}</p>
+
+
+</form>
+</body>
+
+</html>

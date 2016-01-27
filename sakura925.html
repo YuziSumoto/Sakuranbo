@@ -1,0 +1,38 @@
+<html>
+<head>
+  <style type="text/css">
+    .text  {WIDTH:100px; HEIGHT: 30px;font-size:LARGE}
+    .button  {font-size:XX-LARGE}
+  </style>
+
+	<title>SAKURA925</title>
+</head>
+
+<body>
+	<form name="SAKURA925" action="/sakura925/">
+
+<TABLE Border="1">
+	<TR>
+		<TH>居室番号</TH>
+		<TD>
+			<input value="{{ Rec.TxtRoom }}" name="TxtRoom" class="text" />
+		</TD>
+	</TR>
+
+</TABLE>
+
+<BR>
+
+<input type="submit" value = "中止" name="BtnSAKURA920" class="button">
+　
+<input type="submit" value = "決定" name="BtnKettei" class="button">
+
+<BR>
+
+<p	class="LblMsg">{{ LblMsg }}</p>
+
+
+</form>
+</body>
+
+</html>

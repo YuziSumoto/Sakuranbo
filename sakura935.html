@@ -1,0 +1,50 @@
+<html>
+<head>
+  <style type="text/css">
+    .text  {WIDTH:100px; HEIGHT: 30px;font-size:LARGE}
+    .button  {font-size:XX-LARGE}
+  </style>
+
+	<title>SAKURA935</title>
+</head>
+
+<body>
+	<form name="SAKURA935" action="/sakura935/">
+
+<TABLE Border="1">
+	<TR>
+		<TH>大区分</TH>
+		<TD>
+			<input value="{{ Rec.TxtDaikubun }}" name="TxtDaikubun" class="text" />
+		</TD>
+	</TR>
+	<TR>
+		<TH>小区分</TH>
+		<TD>
+			<input value="{{ Rec.TxtSyokubun }}" name="TxtSyokubun" class="text" />
+		</TD>
+	</TR>
+	<TR>
+		<TH>内容</TH>
+		<TD>
+			<input value="{{ Rec.TxtNaiyo }}" name="TxtNaiyo"  class="text"/>
+		</TD>
+	</TR>
+
+</TABLE>
+
+<BR>
+
+<input type="submit" value = "中止" name="BtnSAKURA930" class="button">
+　
+<input type="submit" value = "決定" name="BtnKettei" class="button">
+
+<BR>
+
+<p	class="LblMsg">{{ LblMsg }}</p>
+
+
+</form>
+</body>
+
+</html>

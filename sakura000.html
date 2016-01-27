@@ -1,0 +1,53 @@
+<html>
+<head>
+  <style type="text/css">
+    .text  {font-size:XX-LARGE}
+    .button  {font-size:XX-LARGE}
+  </style>
+
+	<title>SAKURA000</title>
+</head>
+
+<body>
+	<form name="SAKURA000" action="/sakura000/" style="font-size:X-LARGE">
+
+処理対象月
+<select name="CmbNengetu"  class="text" onChange="this.form.submit()">
+	{{ StrNengetu|safe }}
+</select>
+
+<BR>
+<BR>
+
+<input type="submit" value = "家賃・共益費入力" name="BtnSAKURA010" class="button"><BR>
+<input type="submit" value = "電気代入力" name="BtnSAKURA020" class="button"><BR>
+
+<BR>
+<input type="button" value = "家賃領収書印刷"     onclick="window.open('/sakura100/{{ PrintParam|safe }}&Kubun=1');" class="button"><BR>
+<input type="button" value = "管理費領収書印刷"   onclick="window.open('/sakura100/{{ PrintParam|safe }}&Kubun=2');" class="button"><BR>
+<input type="button" value = "電気代領収書印刷"   onclick="window.open('/sakura100/{{ PrintParam|safe }}&Kubun=3');" class="button"><BR>
+<BR>
+
+<input type="button" value = "家賃　出金伝票印刷" onclick="window.open('/sakura120/{{ PrintParam|safe }}&Kubun=1');" class="button"><BR>
+<input type="button" value = "管理費出金伝票印刷" onclick="window.open('/sakura120/{{ PrintParam|safe }}&Kubun=2');" class="button"><BR>
+<input type="button" value = "電気代出金伝票印刷" onclick="window.open('/sakura120/{{ PrintParam|safe }}&Kubun=3');" class="button"><BR>
+
+<BR>
+
+<input type="submit" value = "家賃・共益・電気代マスタ" name="BtnSAKURA900" class="button"><BR>
+<input type="submit" value = "患者マスタ" name="BtnSAKURA910" class="button"><BR>
+<input type="submit" value = "居室マスタ" name="BtnSAKURA920" class="button"><BR>
+<input type="submit" value = "項目マスタ" name="BtnSAKURA930" class="button"><BR>
+<BR>
+
+<input type="submit" value = "終了" name="BtnLogout" class="button"><BR>
+	
+<BR>
+
+<p	class="LblMsg">{{ LblMsg }}</p>
+
+
+</form>
+</body>
+
+</html>

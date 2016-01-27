@@ -1,0 +1,62 @@
+<html>
+<head>
+  <style type="text/css">
+    .text  {WIDTH:100px; HEIGHT: 30px;font-size:LARGE}
+    .button  {font-size:XX-LARGE}
+  </style>
+
+	<title>SAKURA915</title>
+</head>
+
+<body>
+	<form name="SAKURA915" action="/sakura915/">
+
+<TABLE Border="1">
+	<TR>
+		<TH>患者ID</TH>
+		<TD>
+			<input value="{{ Rec.TxtKanzyaID }}" name="TxtKanzyaID" class="text" />
+		</TD>
+	</TR>
+	<TR>
+		<TH>患者氏名</TH>
+		<TD>
+			<input value="{{ Rec.TxtName }}" name="TxtName" class="text" />
+		</TD>
+	</TR>
+	<TR>
+		<TH>かな氏名</TH>
+		<TD>
+			<input value="{{ Rec.TxtKana }}" name="TxtKana"  class="text"/>
+		</TD>
+	</TR>
+	<TR>
+		<TH>所属</TH>
+		<TD>
+			<input value="{{ Rec.TxtSyozoku }}" name="TxtSyozoku"  class="text"/>
+		</TD>
+	</TR>
+	<TR>
+		<TH>備考</TH>
+		<TD>
+			<input value="{{ Rec.TxtBikou }}" name="TxtBikou" class="text"/>
+		</TD>
+	</TR>
+
+</TABLE>
+
+<BR>
+
+<input type="submit" value = "中止" name="BtnSAKURA910" class="button">
+　
+<input type="submit" value = "決定" name="BtnKettei" class="button">
+
+<BR>
+
+<p	class="LblMsg">{{ LblMsg }}</p>
+
+
+</form>
+</body>
+
+</html>

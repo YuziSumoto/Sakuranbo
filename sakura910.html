@@ -1,0 +1,37 @@
+<html>
+<head>
+	<title>SAKURA910</title>
+</head>
+
+<body>
+	<form name="SAKURA910" action="/sakura910/">
+
+<TABLE Border="1">
+	<TR>
+		<TH>患者ID</TH>
+		<TH>氏名</TH>
+		<TH>かな氏名</TH>
+		<TH>所属</TH>
+		<TH>備考</TH>
+		<TH>削除</TH>
+	</TR>
+
+{{ strTable|safe }}
+
+</TABLE>
+
+<BR>
+
+<input type="submit" value = "追加" name="BtnSAKURA915" style="font-size:X-LARGE">
+　
+<input type="submit" value = "終了" name="BtnSAKURA000" style="font-size:X-LARGE">
+
+<BR>
+
+<p	class="LblMsg">{{ LblMsg }}</p>
+
+
+</form>
+</body>
+
+</html>

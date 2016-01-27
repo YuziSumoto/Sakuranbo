@@ -1,0 +1,80 @@
+<html>
+<head>
+
+  <style type="text/css">
+    .midashi  {background-color:cyan}
+    .text     {font-size:X-LARGE}
+    .button   {font-size:XX-LARGE}
+  </style>
+
+	<title>SAKURA025</title>
+</head>
+
+<body>
+	<form name="SAKURA025" action="/sakura025/">
+
+<TABLE Border="1" class="text">
+	<TR>
+		<TH class="midashi">居室番号</TH>
+		<TD>{{ Rec.TxtRoom }}</TD>
+	</TR>
+	<TR>
+		<TH class="midashi">ＩＤ</TH>
+		<TD>{{ Rec.TxtID }}</TD>
+	</TR>
+	<TR>
+		<TH class="midashi">氏名</TH>
+		<TD>{{ Rec.TxtName }}</TD>
+	</TR>
+	<TR>
+		<TH class="midashi">前月メータ</TH>
+		<TD>{{ Rec.TxtZengetu }}</TD>
+	</TR>
+	<TR>
+		<TH class="midashi">当月メータ</TH>
+		<TD>
+			<input value="{{ Rec.TxtMeter }}" name="TxtMeter" class="text" />
+		</TD>
+	</TR>
+
+	<TR>
+		<TH class="midashi">計算区分</TH>
+		<TD>
+			<input type="radio" value="0" name="OptKeisan" class="text"
+			 {{ Rec.OptKeisan0 }}/>自動計算 <BR>
+			<input type="radio" value="1" name="OptKeisan" class="text"
+			 {{ Rec.OptKeisan1 }}/>金額指定
+		</TD>
+	</TR>
+
+	<TR>
+		<TH class="midashi">コメント</TH>
+		<TD>
+			<input value="{{ Rec.TxtComment }}" name="TxtComment" class="text" />
+		</TD>
+	</TR>
+
+	<TR>
+		<TH class="midashi">金額指定</TH>
+		<TD>
+			<input value="{{ Rec.TxtKingaku }}" name="TxtKingaku" class="text" />
+		</TD>
+	</TR>
+
+</TABLE>
+
+<BR>
+
+<input type="submit" value = "中止" name="BtnSAKURA020"  class="button">
+　
+<input type="submit" value = "終了" name="BtnKettei"  class="button">
+
+<BR>
+
+<p	class="LblMsg">{{ LblMsg }}</p>
+
+
+</form>
+</body>
+
+</html>
