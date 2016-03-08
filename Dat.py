@@ -24,10 +24,12 @@ class DatMain(db.Model):
       Kyoeki = 0
       Kanri  = 0
     elif RecDat.IOKubun == 1:  # 入院中
-      if RecDat.KanzyaID == 6425:  # 新田登美子さんなら
-        Yatin  = 30000                            # ３万円だそうな
-      else:
+      if RecDat.KanzyaID != 6425:  # 新田登美子さん以外なら
         Yatin  = RecMst.Yatin                     # 全額
+      elif RecDat.Hizuke >= datetime.datetime.strptime('2016/02/01', '%Y/%m/%d'):
+        Yatin  = RecMst.Yatin # 2016年2月分以降
+      else:
+        Yatin  = 30000                            # ３万円だそうな
       Kyoeki = RecMst.KyoekiDay * RecDat.Nissu  # 共益、管理は日数分
       Kanri  = RecMst.KanriDay  * RecDat.Nissu  # 共益、管理は日数分
     elif RecDat.IOKubun == 2:  # 入退所
@@ -43,10 +45,13 @@ class DatMain(db.Model):
       Kyoeki = RecDat.Kyoeki  # 2015/10/05 共益費手入力対応
       Kanri  = RecDat.Kanri   # 2015/10/05 共益費手入力対応
     else: # 入退所
-      if RecDat.KanzyaID == 6425:  # 新田登美子さんなら
-        Yatin  = 30000                            # ３万円だそうな
+      if RecDat.KanzyaID != 6425:  # 新田登美子さん以外なら
+        Yatin  = RecMst.Yatin                     # 全額
+      elif RecDat.Hizuke >= datetime.datetime.strptime('2016/02/01', '%Y/%m/%d'):
+        Yatin  = RecMst.Yatin # 2016年2月分以降
       else:
-        Yatin  = RecMst.Yatin
+        Yatin  = 30000                            # ３万円だそうな
+      Yatin  = RecMst.Yatin
       Kyoeki = RecMst.Kyoeki
       Kanri  = RecMst.Kanri
 
@@ -76,7 +81,8 @@ class DatDenki(db.Model):
       Rec = SnapMst.fetch(1)[0]
 
     return Rec
-
+
+
 #  電気メータ取得
   def GetDenki(self,Nengetu,Room):
 

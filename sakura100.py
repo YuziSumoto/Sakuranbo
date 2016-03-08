@@ -31,14 +31,14 @@ class MainHandler(webapp2.RequestHandler):
       self.redirect(users.create_logout_url(self.request.uri))
       return
 
-    WorkBook =  self.TableDataSet(self.request.get('LstDate'),int(self.request.get('Kubun')))
+    WorkBook =  self.TableDataSet(self.request.get('LstDate'),int(self.request.get('Kubun')),int(self.request.get('Meigi')))
 
     self.response.headers['Content-Type'] = 'application/ms-excel'
     self.response.headers['Content-Transfer-Encoding'] = 'Binary'
     self.response.headers['Content-disposition'] = 'attachment; filename="sakura100.xls"'
     WorkBook.save(self.response.out)
 
-  def TableDataSet(self,Nengetu,Kubun):
+  def TableDataSet(self,Nengetu,Kubun,Meigi):
 
     WorkBook = xlwt.Workbook()  # 新規Excelブック
 
@@ -80,7 +80,7 @@ class MainHandler(webapp2.RequestHandler):
 
       for RowCtr in range(0,2): # １ページ２件
         RowOffset = RowCtr * 18
-        self.SetTitle(WorkSheet,RowOffset,Kubun,Styles)      # 固定部分セット
+        self.SetTitle(WorkSheet,RowOffset,Kubun,Meigi,Styles)      # 固定部分セット
 
         if Kubun == 1:
           Yatin,Kyoeki,Kanri = WDatMain.GetKingaku(Nengetu,Rec[RowCtr],RecYatinMst) # 金額取得
@@ -267,7 +267,7 @@ class MainHandler(webapp2.RequestHandler):
 
     return
 
-  def SetTitle(self,WorkSheet,RowOffset,Kubun,Styles):  # 固定部分セット
+  def SetTitle(self,WorkSheet,RowOffset,Kubun,Meigi,Styles):  # 固定部分セット
 
     Hizuke =  u"平成" + str(datetime.datetime.now().year - 1988) + u"年" 
     Hizuke += str(datetime.datetime.now().month) + u"月"
@@ -278,12 +278,16 @@ class MainHandler(webapp2.RequestHandler):
 
     for i in range(0,2):
       ColSpan = i * 9
-
       WorkSheet.write(0 + RowOffset,5 + ColSpan ,Hizuke,Styles["Style005"])
-      WorkSheet.write(2 + RowOffset,4 + ColSpan,u"　　呉市宮原２丁目５-２４",Styles["Style005"])
-      WorkSheet.write(3 + RowOffset,5 + ColSpan,u"森川　敦子",Styles["Style005"])
-      WorkSheet.write(4 + RowOffset,4 + ColSpan,u"　　　　TEL(0823)24-0706",Styles["Style005"])
-
+      if Meigi == 1:
+        WorkSheet.write(2 + RowOffset,4 + ColSpan,u"　　呉市宮原２丁目５-２４",Styles["Style005"])
+        WorkSheet.write(3 + RowOffset,5 + ColSpan,u"森川　敦子",Styles["Style005"])
+        WorkSheet.write(4 + RowOffset,4 + ColSpan,u"　　　　TEL(0823)24-0706",Styles["Style005"])
+      else:
+        WorkSheet.write(2 + RowOffset,4 + ColSpan,u"　　呉市広白石４丁目７－２２",Styles["Style005"])
+        WorkSheet.write(3 + RowOffset,4 + ColSpan,u"　　　医療法人社団　和恒会",Styles["Style005"])
+        WorkSheet.write(4 + RowOffset,4 + ColSpan,u"　　　　TEL(0823)70-0555",Styles["Style005"])
+        
       if Kubun == 1:
         WorkSheet.write(7 + RowOffset,1 + ColSpan,u"さくらんぼ家賃・共益費" ,Styles["Style006"])
       elif Kubun == 2:
