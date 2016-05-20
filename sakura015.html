@@ -11,7 +11,7 @@
 </head>
 
 <body>
-	<form name="SAKURA015" action="/sakura015/">
+	<form name="SAKURA015" action="/sakura015/" method="post">
 
 <TABLE Border="1" class="text">
 	<TR>
@@ -41,10 +41,44 @@
 		</TD>
 	</TR>
 	<TR>
-		<TH class="midashi">入居日数</TH>
+		<TH class="midashi">利用日数</TH>
 		<TD>
-			<select name="CmbNissu" class="text">
-				{{ StrNissu|safe }}
+			<select name="Nissu" class="text">
+				{% for Hizuke in Nissu %}
+					<option value='{{ Hizuke }}'
+						{% ifequal Rec.Nissu Hizuke %}
+						 selected
+						{% endifequal %}
+					>{{ Hizuke }}</option>
+				{% endfor %}
+			</select>
+		</TD>
+	</TR>
+	<TR>
+		<TH class="midashi">入院日数</TH>
+		<TD>
+			<select name="NyuinNissu" class="text">
+				{% for Hizuke in Nissu %}
+					<option value='{{ Hizuke }}'
+						{% ifequal Rec.NyuinNissu Hizuke %}
+						 selected
+						{% endifequal %}
+					>{{ Hizuke }}</option>
+				{% endfor %}
+			</select>
+		</TD>
+	</TR>
+	<TR>
+		<TH class="midashi">体験日数</TH>
+		<TD>
+			<select name="TaikenNissu" class="text">
+				{% for Hizuke in Nissu %}
+					<option value='{{ Hizuke }}'
+						{% ifequal Rec.TaikenNissu Hizuke %}
+						 selected
+						{% endifequal %}
+					>{{ Hizuke }}</option>
+				{% endfor %}
 			</select>
 		</TD>
 	</TR>
@@ -54,6 +88,15 @@
 		<TD></TD>
 	</TR>
 -->
+	<TR>
+		<TH class="midashi">家賃補助</TH>
+		<TD>
+			<input type="checkbox" name="Hozyo" value="1"
+			{% ifequal Rec.Hozyo 1 %}
+				 checked="checked"
+			{% endifequal %}
+			>家賃補助あり</TD>
+	</TR>
 	<TR>
 		<TH class="midashi">備考</TH>
 		<TD>

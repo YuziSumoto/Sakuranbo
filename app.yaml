@@ -13,29 +13,48 @@ handlers:
 - url: /sakura000/.*
   script: sakura000.app
 
-# 家賃共益費一覧
+# 家賃共益費一覧(2016/04まで)
 - url: /sakura010/.*
   script: sakura010.app
+
+# 家賃共益費一覧(2016/05から)
+- url: /sakura011/.*
+  script: sakura011.app
 
 # 家賃共益費入力
 - url: /sakura015/.*
   script: sakura015.app
 
-# 電気代一覧
+# 電気代一覧(2016/04まで)
 - url: /sakura020/.*
   script: sakura020.app
+
+# 電気代一覧(2016/05から)
+- url: /sakura021/.*
+  script: sakura021.app
 
 # 電気代入力
 - url: /sakura025/.*
   script: sakura025.app
+- url: /sakura026/.*
+  script: sakura026.app
 
 # 領収書印刷
 - url: /sakura100/.*
   script: sakura100.app
 
+# 領収書印刷(2016/05から)
+- url: /sakura101/.*
+  script: sakura101.app
+
 # 家賃共益一覧印刷
 - url: /sakura110/.*
   script: sakura110.app
+
+# 家賃共益一覧印刷(2016/05から)
+- url: /sakura111/.*
+  script: sakura111.app
+
 # 電気代一覧印刷
 - url: /sakura115/.*
   script: sakura115.app

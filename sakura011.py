@@ -38,7 +38,7 @@ class MainHandler(webapp2.RequestHandler):
     if self.request.get('BtnSAKURA015')  != '':
       Param =  "?Nengetu=" + Nengetu
       Param += "&Room=" + self.request.get('BtnSAKURA015')
-      Param += "&Return=sakura010"
+      Param += "&Return=sakura011"
       self.redirect("/sakura015/" + Param)
       return
 
@@ -58,7 +58,7 @@ class MainHandler(webapp2.RequestHandler):
     template_values = {'strTable':strTable,
                        'PrintParam' : PrintParam,
                        'LblMsg':LblMsg}
-    path = os.path.join(os.path.dirname(__file__), 'sakura010.html')
+    path = os.path.join(os.path.dirname(__file__), 'sakura011.html')
     self.response.out.write(template.render(path, template_values))
 
 #  テーブルセット(居室マスタ)
@@ -68,75 +68,79 @@ class MainHandler(webapp2.RequestHandler):
     RecNyutai   = MstKoumoku().GetNyutai()
 
     retStr = ""
-    Sql =  "SELECT * FROM MstRoom"
-    Sql += " Where  Room >= 100 Order by Room"
-    SnapMst = db.GqlQuery(Sql)
-    for RecMst in SnapMst.fetch(100):
-      retStr += "<TR>"
+#    SnapMst = db.GqlQuery("SELECT * FROM MstRoom Order by Room")
+#    for RecMst in SnapMst.fetch(100):
+    for Ctr in range(1,41):
+      retStr += u"<TR>"
       retStr += "<TD>"    # 更新ボタン
       retStr += "<input type='submit' value = '"
-      retStr += str(RecMst.Room)
+      retStr += str(Ctr)
       retStr += "' name='BtnSAKURA015"
       retStr += "'>"
       retStr += "</TD>"
-      retStr += self.DataSet(Nengetu,str(RecMst.Room),RecYatinMst,RecNyutai)
-   
+      retStr += self.DataSet(Nengetu,str(Ctr),RecYatinMst,RecNyutai)
       retStr += "<TD>"    # 削除ボタン
-      retStr += "<input type='submit' value = '削除'"
+      retStr += u"<input type='submit' value = '削除'"
       retStr += " name='BtnDel"
-      retStr += str(RecMst.Room)
+      retStr += str(Ctr)
       retStr += "'>"
       retStr += "</TD>"
-
       retStr += "</TR>"
     return retStr
 
 #  テーブルセット（データ部)
   def DataSet(self,Nengetu,Room,RecYatinMst,RecNyutai):
 
-    retStr = ""
+    retStr = u""
 
     Sql =  "SELECT * FROM DatMain"
     Sql += " Where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
     Sql += "  And  Room   = " + Room
-
-    SnapMst = db.GqlQuery(Sql)
-  
-    if SnapMst.count() == 0:
+    Snap = db.GqlQuery(Sql)
+    if Snap.count() == 0:
       for i in range(1,3):
         retStr += "<TD>&nbsp</TD>" # ＩＤ
-      retStr += "<TD>空室</TD>" # ＩＤ
-      for i in range(4,11):
+      retStr += u"<TD>空室</TD>" # ＩＤ
+      for i in range(4,14):
         retStr += "<TD>&nbsp</TD>" # ＩＤ
     else:
-      RecMst = SnapMst.fetch(1)
-      retStr += "<TD>"  + str(RecMst[0].KanzyaID)    + "</TD>" # ＩＤ
+      Rec = Snap.fetch(1)[0]
+      retStr += "<TD>"  + str(Rec.KanzyaID)    + "</TD>" # ＩＤ
       retStr += "<TD>" # 氏名
-      if RecMst[0].KanzyaName == None:
+      if Rec.KanzyaName == None:
         retStr += "&nbsp"
       else:
-        retStr += RecMst[0].KanzyaName.encode('utf_8')
+        retStr += Rec.KanzyaName
       retStr += "</TD>"
 
       retStr += "<TD>" # 入退区分
-      if RecMst[0].IONaiyo == None:
-        retStr += "&nbsp"
-      else:
-        retStr += RecMst[0].IONaiyo.encode('utf_8')
+      retStr += Rec.IONaiyo if (Rec.IONaiyo != None) else "&nbsp"
       retStr += "</TD>"
 
-      retStr += "<TD>"  + RecMst[0].Zyokyo.encode('utf_8')      + "</TD>" # 状況
-      retStr += "<TD align='right'>" # 入居日数
-      if RecMst[0].Nissu != 0:
-        retStr +=  str(RecMst[0].Nissu)       + "</TD>" # 入居日数
+      retStr += "<TD>"  + Rec.Zyokyo      + "</TD>" # 状況
+
+      retStr += "<TD align='right'>" # 利用日数
+      retStr += str(Rec.Nissu) if Rec.Nissu != None else ""
       retStr += "</TD>" 
-      Hozyo,Yatin,Kyoeki,Kanri = DatMain().GetKingaku(Nengetu,RecMst[0],RecYatinMst)
+
+      retStr += "<TD align='right'>" # 入院日数
+      retStr +=  str(Rec.NyuinNissu) if Rec.NyuinNissu != None else ""
+      retStr += "</TD>" 
+
+      retStr += "<TD align='right'>" # 体験日数
+      retStr +=  str(Rec.TaikenNissu) if Rec.TaikenNissu != None else ""
+      retStr += "</TD>" 
+
+
+#      Yatin,Kyoeki,Kanri = DatMain().GetKingaku(Nengetu,RecMst[0],RecYatinMst)
+      Hozyo,Yatin,Kyoeki,Kanri = DatMain().GetKingaku(Nengetu,Rec,RecYatinMst)
+      retStr += "<TD align='right'>\\"  + str(Hozyo)  + "</TD>" # 補助
       retStr += "<TD align='right'>\\"  + str(Yatin)  + "</TD>" # 家賃
       retStr += "<TD align='right'>\\"  + str(Kyoeki) + "</TD>" # 共益費
       retStr += "<TD align='right'>\\"  + str(Kanri)  + "</TD>" # 管理費
-      retStr += "<TD>"  + RecMst[0].Biko.encode('utf_8')        + "</TD>" # 備考
+      retStr += "<TD>"  + Rec.Biko        + "</TD>" # 備考
       retStr += "<TD>"
-      if  RecMst[0].GenkinFlg == 1:
+      if  Rec.GenkinFlg == 1:
         retStr += "○"
       retStr += "</TD>" # 現金フラグ
 
@@ -194,5 +198,5 @@ class MainHandler(webapp2.RequestHandler):
       result.delete()
 
 app = webapp2.WSGIApplication([
-    ('/sakura010/', MainHandler)
+    ('/sakura011/', MainHandler)
 ], debug=True)

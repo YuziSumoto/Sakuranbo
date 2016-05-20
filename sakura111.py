@@ -50,13 +50,12 @@ class MainHandler(webapp2.RequestHandler):
 
     WorkSheet.write(0,1 ,Nengetu.replace("/",u"年") + u"月分家賃・共益費")
 
-    Sql =  "SELECT * FROM MstRoom"
-    Sql += "  Where Room >= 100"
-    Sql += "  Order by Room"
+#    Sql =  "SELECT * FROM MstRoom"
+#    Sql += "  Order by Room"
 
-    SnapDat = db.GqlQuery(Sql)
+#    SnapDat = db.GqlQuery(Sql)
 
-    RecDat = SnapDat.fetch(100) # データ取得
+#    RecDat = SnapDat.fetch(100) # データ取得
     OutRow = 2 # 出力行
 
     DaityoKei = [0,0,0]
@@ -69,22 +68,19 @@ class MainHandler(webapp2.RequestHandler):
     font.height = 250
     Style.font = font
 
-    for Rec in RecDat:
-      OutRow += 1
-      if  self.DataSet(WorkSheet,OutRow,Nengetu,str(Rec.Room),DaityoKei,GenkinKei,RecYatinMst) == True:
-        WorkSheet.write(OutRow,0,str(Rec.Room),Style)
-      else:
-        OutRow -= 1
+#    for Rec in RecDat:
+    OutRow += 1
+    OutRow = self.DataSet(WorkSheet,OutRow,Nengetu,DaityoKei,GenkinKei,RecYatinMst)
 
-    OutRow += 2
+    OutRow += 1
     Style = self.SetStyle("THIN","THIN","THIN","THIN",False,xlwt.Alignment.HORZ_CENTER)
     font = xlwt.Font() # Create the Font
     font.height = 200
     Style.font = font
     WorkSheet.write(OutRow,4,u"家賃+共益費",Style)
-    WorkSheet.write(OutRow,6,u"当月家賃",Style)
-    WorkSheet.write(OutRow,7,u"当月共益費",Style)
-    WorkSheet.write(OutRow,8,u"当月管理費",Style)
+    WorkSheet.write(OutRow,9,u"当月家賃",Style)
+    WorkSheet.write(OutRow,10,u"当月共益費",Style)
+    WorkSheet.write(OutRow,11,u"当月管理費",Style)
     OutRow += 1
     Style = self.SetStyle(False,False,False,False,False,xlwt.Alignment.HORZ_RIGHT)
     font = xlwt.Font() # Create the Font
@@ -96,9 +92,9 @@ class MainHandler(webapp2.RequestHandler):
     font.height = 250
     Style.font = font
     WorkSheet.write(OutRow,4,u"￥" + "{:,d}".format(DaityoKei[0] + DaityoKei[1]),Style)
-    WorkSheet.write(OutRow,6,u"￥" + "{:,d}".format(DaityoKei[0]),Style)
-    WorkSheet.write(OutRow,7,u"￥" + "{:,d}".format(DaityoKei[1]),Style)
-    WorkSheet.write(OutRow,8,u"￥" + "{:,d}".format(DaityoKei[2]),Style)
+    WorkSheet.write(OutRow,9,u"￥" + "{:,d}".format(DaityoKei[0]),Style)
+    WorkSheet.write(OutRow,10,u"￥" + "{:,d}".format(DaityoKei[1]),Style)
+    WorkSheet.write(OutRow,11,u"￥" + "{:,d}".format(DaityoKei[2]),Style)
     OutRow += 1
     Style = self.SetStyle(False,False,False,False,False,xlwt.Alignment.HORZ_RIGHT)
     font = xlwt.Font() # Create the Font
@@ -110,9 +106,9 @@ class MainHandler(webapp2.RequestHandler):
     font.height = 250
     Style.font = font
     WorkSheet.write(OutRow,4,u"￥" + "{:,d}".format(GenkinKei[0] + GenkinKei[1]),Style)
-    WorkSheet.write(OutRow,6,u"￥" + "{:,d}".format(GenkinKei[0]),Style)
-    WorkSheet.write(OutRow,7,u"￥" + "{:,d}".format(GenkinKei[1]),Style)
-    WorkSheet.write(OutRow,8,u"￥" + "{:,d}".format(GenkinKei[2]),Style)
+    WorkSheet.write(OutRow,9,u"￥" + "{:,d}".format(GenkinKei[0]),Style)
+    WorkSheet.write(OutRow,10,u"￥" + "{:,d}".format(GenkinKei[1]),Style)
+    WorkSheet.write(OutRow,11,u"￥" + "{:,d}".format(GenkinKei[2]),Style)
     OutRow += 1
     Style = self.SetStyle(False,False,False,False,False,xlwt.Alignment.HORZ_RIGHT)
     font = xlwt.Font() # Create the Font
@@ -127,36 +123,35 @@ class MainHandler(webapp2.RequestHandler):
     Goukei += GenkinKei[0] + GenkinKei[1]
     WorkSheet.write(OutRow,4,u"￥" + "{:,d}".format(Goukei),Style)
     Goukei  = DaityoKei[0] + GenkinKei[0]
-    WorkSheet.write(OutRow,6,u"￥" + "{:,d}".format(Goukei),Style)
+    WorkSheet.write(OutRow,9,u"￥" + "{:,d}".format(Goukei),Style)
     Goukei  = DaityoKei[1] + GenkinKei[1]
-    WorkSheet.write(OutRow,7,u"￥" + "{:,d}".format(Goukei),Style)
+    WorkSheet.write(OutRow,10,u"￥" + "{:,d}".format(Goukei),Style)
     Goukei  = DaityoKei[2] + GenkinKei[2]
-    WorkSheet.write(OutRow,8,u"￥" + "{:,d}".format(Goukei),Style)
+    WorkSheet.write(OutRow,11,u"￥" + "{:,d}".format(Goukei),Style)
 
 
     return  WorkBook
 
-  def DataSet(self,WorkSheet,OutRow,Nengetu,Room,DaityoKei,GenkinKei,RecYatinMst):  # データ取得
+  def DataSet(self,WorkSheet,OutRow,Nengetu,DaityoKei,GenkinKei,RecYatinMst):  # データ取得
 
     Sql =  "SELECT * FROM DatMain"
     Sql += " Where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
-    Sql += "  And  Room   = " + Room
+    Sql += "  And  Room   < 100" # + Room
     Sql += "  Order by Room"
 
-    SnapDat = db.GqlQuery(Sql)
-    if SnapDat.count() == 0:
-      RecDat = "None"
-    else:
-      RecDat = SnapDat.fetch(1)[0] # データ取得
+    Snap = db.GqlQuery(Sql)
 
-    Style = self.SetStyle("THIN","THIN","THIN","THIN",False,False)
-    font = xlwt.Font() # Create the Font
-    font.height = 250
-    Style.font = font
+    if Snap.count() == 0:
+      return OutRow
 
-    if RecDat == "None":
-      return False
-    else:
+    for RecDat in Snap.fetch(Snap.count()):
+
+      Style = self.SetStyle("THIN","THIN","THIN","THIN",False,False)
+      font = xlwt.Font() # Create the Font
+      font.height = 250
+      Style.font = font
+      WorkSheet.write(OutRow,0,str(RecDat.Room),Style) # 患者名 
+
       WorkSheet.write(OutRow,2,RecDat.KanzyaName,Style) # 患者名 
 
       Style = self.SetStyle("THIN","THIN","THIN","THIN",False,xlwt.Alignment.HORZ_RIGHT)
@@ -177,11 +172,27 @@ class MainHandler(webapp2.RequestHandler):
       font = xlwt.Font() # Create the Font
       font.height = 250
       Style.font = font
-      WorkSheet.write(OutRow,5,str(RecDat.Nissu),Style)
+
+      if  RecDat.Nissu == None or RecDat.Nissu == 0:
+        WorkSheet.write(OutRow,5,"",Style)
+      else:
+        WorkSheet.write(OutRow,5,str(RecDat.Nissu),Style)
+
+      if  RecDat.NyuinNissu == None or RecDat.NyuinNissu == 0:
+        WorkSheet.write(OutRow,6,"",Style)
+      else:
+        WorkSheet.write(OutRow,6,str(RecDat.NyuinNissu),Style)
+      if  RecDat.TaikenNissu == None or RecDat.TaikenNissu == 0:
+        WorkSheet.write(OutRow,7,"",Style)
+      else:
+        WorkSheet.write(OutRow,7,str(RecDat.TaikenNissu),Style)
+
       Hozyo,Yatin,Kyoeki,Kanri =  DatMain().GetKingaku(Nengetu,RecDat,RecYatinMst)
-      WorkSheet.write(OutRow,6,u"￥" + "{:,d}".format(Yatin),Style)
-      WorkSheet.write(OutRow,7,u"￥" + "{:,d}".format(Kyoeki),Style)
-      WorkSheet.write(OutRow,8,u"￥" + "{:,d}".format(Kanri),Style)
+      WorkSheet.write(OutRow,8,u"￥" + "{:,d}".format(Hozyo),Style)
+      WorkSheet.write(OutRow,9,u"￥" + "{:,d}".format(Yatin),Style)
+      WorkSheet.write(OutRow,10,u"￥" + "{:,d}".format(Kyoeki),Style)
+      WorkSheet.write(OutRow,11,u"￥" + "{:,d}".format(Kanri),Style)
+
       Style = self.SetStyle("THIN","THIN","THIN","THIN",False,False)
       font = xlwt.Font() # Create the Font
       font.height = 250
@@ -193,14 +204,15 @@ class MainHandler(webapp2.RequestHandler):
         font = xlwt.Font() # Create the Font
         font.height = 450
         Style.font = font
-        WorkSheet.write(OutRow,9,u"○",Style)
+        WorkSheet.write(OutRow,12,u"○",Style)
       else:
         DaityoKei[0] += Yatin
         DaityoKei[1] += Kyoeki
         DaityoKei[2] += Kanri
-        WorkSheet.write(OutRow,9,"",Style)
+        WorkSheet.write(OutRow,12,"",Style)
+      OutRow += 1
 
-    return True
+    return OutRow
 
   def SetPrintParam(self,WorkSheet): # 用紙サイズ・余白設定
 #    WorkSheet.set_paper_size_code(13) # B5
@@ -217,8 +229,8 @@ class MainHandler(webapp2.RequestHandler):
 
   def SetColRowSize(self,WorkSheet):  # 行,列サイズセット
 
-    ColWidth = ["列の幅",4,6,8,10.5,8.5,4,9,8,8,4]
-    for i in range(1,11):
+    ColWidth = ["列の幅",4,6,8,10.5,8.5,4,4,4,7,7,7,7,4]
+    for i in range(1,14):
       WorkSheet.col(i - 1).width = int(ColWidth[i] * 400)
 
     for i in range(1,50):
@@ -244,11 +256,14 @@ class MainHandler(webapp2.RequestHandler):
     WorkSheet.write(2,2,u"患者ID",Style)
     WorkSheet.write(2,3,u"移動区分",Style)
     WorkSheet.write(2,4,u"状況",Style)
-    WorkSheet.write(2,5,u"日数",Style)
-    WorkSheet.write(2,6,u"家賃",Style)
-    WorkSheet.write(2,7,u"共益費",Style)
-    WorkSheet.write(2,8,u"管理費",Style)
-    WorkSheet.write(2,9,u"現金",Style)
+    WorkSheet.write(2,5,u"利日",Style)
+    WorkSheet.write(2,6,u"入日",Style)
+    WorkSheet.write(2,7,u"体日",Style)
+    WorkSheet.write(2,8,u"補助",Style)
+    WorkSheet.write(2,9,u"家賃",Style)
+    WorkSheet.write(2,10,u"共益費",Style)
+    WorkSheet.write(2,11,u"管理費",Style)
+    WorkSheet.write(2,12,u"現金",Style)
 
     return
 
@@ -290,5 +305,5 @@ class MainHandler(webapp2.RequestHandler):
     return Style
 
 app = webapp2.WSGIApplication([
-    ('/sakura110/', MainHandler)
+    ('/sakura111/', MainHandler)
 ], debug=True)

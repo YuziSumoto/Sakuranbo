@@ -16,31 +16,16 @@ class MainHandler(webapp2.RequestHandler):
 
   @login_required
 
-  def get(self):
+  def get(self): # 初期表示
 
     user = users.get_current_user() # ログオン確認
     if MstUser().ChkUser(user.email()) == False:
       self.redirect(users.create_logout_url(self.request.uri))
       return
 
-    if self.request.get('BtnSAKURA000')  != '':
-      self.redirect("/sakura000/")
-      return
-
-    if self.request.get('Nengetu') != '': # 初期表示→パラメタ取得
-      Nengetu = self.request.get('Nengetu')
-      cookieStr = 'Nengetu=' + Nengetu + ';' # expires=Fri, 31-Dec-2020 23:59:59 GMT'
-      self.response.headers.add_header('Set-Cookie', cookieStr.encode('shift-jis'))
-    else:    # ２回目からはクッキー取得
-      Nengetu = self.request.cookies.get('Nengetu', '')
-
-    if self.request.get('BtnSAKURA025')  != '':
-      self.redirect("/sakura025/?Nengetu=" + Nengetu + "&Room=" + self.request.get('BtnSAKURA025') )
-      return
-
-    for param in self.request.arguments():
-      if "BtnDel" in param:
-        self.DataDel(Nengetu,param.replace("BtnDel",""))
+    Nengetu = self.request.get('Nengetu')
+    cookieStr = 'Nengetu=' + Nengetu + ';' # expires=Fri, 31-Dec-2020 23:59:59 GMT'
+    self.response.headers.add_header('Set-Cookie', cookieStr.encode('shift-jis'))
 
     LblMsg    =  ""
     strTable  =  self.tableSet(Nengetu)  # 一覧セット
@@ -51,7 +36,38 @@ class MainHandler(webapp2.RequestHandler):
     template_values = {'strTable':strTable,
                        'PrintParam' : PrintParam,
                        'LblMsg':LblMsg}
-    path = os.path.join(os.path.dirname(__file__), 'sakura020.html')
+    path = os.path.join(os.path.dirname(__file__), 'sakura021.html')
+    self.response.out.write(template.render(path, template_values))
+
+  def post(self):
+
+    user = users.get_current_user() # ログオン確認
+    if MstUser().ChkUser(user.email()) == False:
+      self.redirect(users.create_logout_url(self.request.uri))
+      return
+
+    if self.request.get('BtnSAKURA000')  != '':
+      self.redirect("/sakura000/")
+      return
+    Nengetu = self.request.cookies.get('Nengetu', '')
+
+    if self.request.get('BtnSAKURA026')  != '':
+      self.redirect("/sakura026/?Nengetu=" + Nengetu + "&Room=" + self.request.get('BtnSAKURA026') )
+      return
+
+    for param in self.request.arguments():
+      if "BtnDel" in param:
+        self.DataDel(Nengetu,param.replace("BtnDel",""))
+
+    LblMsg    =  ""
+    strTable  =  self.tableSet(Nengetu)  # 一覧セット
+
+    PrintParam = "?LstDate=" + Nengetu
+
+    template_values = {'strTable':strTable,
+                       'PrintParam' : PrintParam,
+                       'LblMsg':LblMsg}
+    path = os.path.join(os.path.dirname(__file__), 'sakura021.html')
     self.response.out.write(template.render(path, template_values))
 
 #  テーブルセット(居室マスタ)
@@ -60,23 +76,16 @@ class MainHandler(webapp2.RequestHandler):
     RecYatinMst = MstYatin().GetRec(Nengetu) # 家賃マスタ取得
 
     retStr = ""
-    Sql =  "SELECT * FROM MstRoom "
-    Sql += " Where Room >= 100 Order by Room"
-    SnapMst = db.GqlQuery(Sql)
-    for RecMst in SnapMst.fetch(100):
+    for Ctr in range(1,41):
       retStr += "<TR>"
       retStr += "<TD>"    # 更新ボタン
-      retStr += "<input type='submit' value = '"
-      retStr += str(RecMst.Room)
-      retStr += "' name='BtnSAKURA025"
-      retStr += "'>"
+      retStr += "<input type='submit' value = '"  + str(Ctr) + "'"
+      retStr += " name='BtnSAKURA026'>"
       retStr += "</TD>"
-      retStr += self.DataSet(Nengetu,str(RecMst.Room),RecYatinMst)
+      retStr += self.DataSet(Nengetu,str(Ctr),RecYatinMst)
       retStr += "<TD>"    # 削除ボタン
       retStr += "<input type='submit' value = '削除'"
-      retStr += " name='BtnDel"
-      retStr += str(RecMst.Room)
-      retStr += "'>"
+      retStr += " name='BtnDel" + str(Ctr) + "'>"
       retStr += "</TD>"
       retStr += "</TR>"
     return retStr
@@ -88,46 +97,45 @@ class MainHandler(webapp2.RequestHandler):
 
     WDatDenki = DatDenki()
 
-    Sql =  "SELECT * FROM DatMain"
+    Sql =  "SELECT * FROM DatDenki"
     Sql += " Where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
     Sql += "  And  Room   = " + Room
 
-    SnapMst = db.GqlQuery(Sql)
-  
-    if SnapMst.count() == 0:
+    Snap = db.GqlQuery(Sql)
+
+    if Snap.count() == 0: # データ無し
+      Rec = {}
       for i in range(1,3):
         retStr += "<TD>&nbsp</TD>" # ＩＤ
     else:
-      RecMst = SnapMst.fetch(1)
-      retStr += "<TD>"  + str(RecMst[0].KanzyaID)    + "</TD>" # ＩＤ
-      if RecMst[0].KanzyaName == None:
+      Rec = SnapMst.fetch(1)[0]
+      retStr += "<TD>"  + str(RecMst.KanzyaID)    + "</TD>" # ＩＤ
+      if Rec.KanzyaName == None:
         retStr += "<TD>&nbsp</TD>" # 氏名
       else:
-        retStr += "<TD>"  + RecMst[0].KanzyaName.encode('utf-8') + "</TD>" # 氏名
+        retStr += "<TD>"  + RecMst.KanzyaName + "</TD>" # 氏名
 
-    Zengetu = datetime.datetime.strptime(Nengetu + "/01", '%Y/%m/%d') # 当月１日
-    Zengetu -= datetime.timedelta(days=1) # 前月末日
-    ZenMeter = WDatDenki.GetDenki(Zengetu.strftime('%Y/%m'),Room)
-
-    KonMeter = WDatDenki.GetDenki(Nengetu,Room)
-    if ZenMeter == 0 or ZenMeter == None:
-      retStr += "<TD>&nbsp</TD>"
+    Siyoryo = 0
+    for Ctr in range(1,3): # ２回ループ
+      retStr += "<TD align='right'>" # 当月メータ
+      if getattr(Rec,"SMeter" + str(Ctr),None) == None: # 未指定？
+        retStr += "&nbsp"
+      else:
+        retStr += ('%5.2f' % getattr(Rec,"SMeter" + str(Ctr)))
+      retStr += "</TD>" 
+      retStr += "<TD align='right'>" # 前月メータ
+      if getattr(Rec,"EMeter" + str(Ctr),None) == None:
+        retStr += "&nbsp"
+      else:
+        retStr += ('%5.2f' % getattr(Rec,"EMeter" + str(Ctr)))
+      retStr += "</TD>"
+        
+    retStr += "<TD align='right'>" # 使用量
+    if getattr(Rec,"EMeter" + str(Ctr),None) == None: # None
+      retStr += "&nbsp"
     else:
-      retStr += "<TD align='right'>"  + ('%5.2f' % ZenMeter) + "</TD>" # 前月メータ
-    if KonMeter == 0 or KonMeter ==None :
-      retStr += "<TD>&nbsp</TD>"
-    else:
-      retStr += "<TD align='right'>"  + ('%5.2f' % KonMeter) + "</TD>" # 前月メータ
-
-    if ZenMeter != None and KonMeter != None:
-      Siyoryo = KonMeter - ZenMeter
-    else:
-      Siyoryo = 0
-
-    if Siyoryo <= 0:
-      retStr += "<TD>&nbsp</TD>"
-    else:
-      retStr += "<TD align='right'>"  + ('%5.2f' % Siyoryo) + "</TD>" # 当月使用数
+      retStr += ('%5.2f' % getattr(Rec,"EMeter" + str(Ctr)))
+    retStr += "</TD>"
 
     KeisanKubun,Comment,Kingaku = WDatDenki.GetKingaku(Nengetu,Room,RecYatinMst.DenkiTanka)
 
@@ -164,5 +172,5 @@ class MainHandler(webapp2.RequestHandler):
     return
 
 app = webapp2.WSGIApplication([
-    ('/sakura020/', MainHandler)
+    ('/sakura021/', MainHandler)
 ], debug=True)

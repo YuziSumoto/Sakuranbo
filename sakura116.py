@@ -57,7 +57,8 @@ class MainHandler(webapp2.RequestHandler):
     RecYatinMst = MstYatin().GetRec(Nengetu) # 家賃マスタ取得
 
     Sql =  "SELECT * FROM DatMain"  # 家賃データ取得
-    Sql += " Where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
+    Sql += " Where Room >= 100" # 2016/05/17 Add
+    Sql += "  And  Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
     Sql += "  Order by Room"
     SnapDat = db.GqlQuery(Sql)
 
@@ -117,9 +118,9 @@ class MainHandler(webapp2.RequestHandler):
     WorkSheet.write(OutRow,4,('%5.2f' % ZenMeter),Style)
 
     KonMeter = WDatDenki.GetDenki(Nengetu,str(Rec.Room))
-    WorkSheet.write(OutRow,5,('%5.2f' % KonMeter),Style)
-
-    WorkSheet.write(OutRow,6,('%5.2f' % (KonMeter - ZenMeter)),Style)
+    if KonMeter != None:
+      WorkSheet.write(OutRow,5,('%5.2f' % KonMeter),Style)
+      WorkSheet.write(OutRow,6,('%5.2f' % (KonMeter - ZenMeter)),Style)
 
     if KeisanKubun == 1:
       WKingaku = u"手入力"

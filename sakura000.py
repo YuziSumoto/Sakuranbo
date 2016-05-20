@@ -32,13 +32,19 @@ class MainHandler(webapp2.RequestHandler):
       return
 
 # 家賃共益費入力
-    if self.request.get('BtnSAKURA010')  != '':
+    if self.request.get('BtnSAKURA010')  != '': # (2016/04まで)
       self.redirect("/sakura010/?Nengetu=" + self.request.get('CmbNengetu') )
+      return
+    if self.request.get('BtnSAKURA011')  != '': # (2016/05から)
+      self.redirect("/sakura011/?Nengetu=" + self.request.get('CmbNengetu') )
       return
 
 # 電気代入力
-    if self.request.get('BtnSAKURA020')  != '':
+    if self.request.get('BtnSAKURA020')  != '': # (2016/04まで)
       self.redirect("/sakura020/?Nengetu=" + self.request.get('CmbNengetu') )
+      return
+    if self.request.get('BtnSAKURA021')  != '': # (2016/05から)
+      self.redirect("/sakura021/?Nengetu=" + self.request.get('CmbNengetu') )
       return
 
 # 家賃・共益・電気代マスタ

@@ -1,0 +1,75 @@
+<html>
+<head>
+  <style type="text/css">
+    .midashi  {background-color:cyan}
+    .text     {font-size:X-LARGE}
+    .button   {font-size:XX-LARGE}
+		.scr {
+			overflow-y: scroll;   /* スクロール表示 */ 
+			width:  920px;
+			height: 600px;
+			border: 4px double #000000; 
+		}
+  </style>
+	<title>SAKURA020</title>
+</head>
+
+<body>
+	<form name="SAKURA021" action="/sakura021/" method="post">
+
+	<TABLE Border="1">
+		<TR class="Midashi">
+			<TH style="width:40px">番号</TH>
+			<TH style="width:80px">ＩＤ</TH>
+			<TH style="width:120px">入居者氏名</TH>
+			<TH style="width:60px">前月メータ1</TH>
+			<TH style="width:60px">当月メータ1</TH>
+			<TH style="width:60px">前月メータ2</TH>
+			<TH style="width:60px">当月メータ2</TH>
+			<TH style="width:60px">当月使用数</TH>
+			<TH style="width:60px">計算額</TH>
+			<TH style="width:120px">コメント</TH>
+			<TH style="width:60px">請求額</TH>
+			<TH style="width:40px">削除</TH>
+		</TR>
+	</TABLE>
+
+	<DIV class="scr">
+		<TABLE Border="1">
+	<TR height="0px">  <!-- カラム幅指定行 -->
+		<TH style="width:40px;border:0"></TH>
+		<TH style="width:80px;border:0"></TH>
+		<TH style="width:122px;border:0"></TH>
+		<TH style="width:62px;border:0"></TH>
+		<TH style="width:62px;border:0"></TH>
+		<TH style="width:62px;border:0"></TH>
+		<TH style="width:62px;border:0"></TH>
+		<TH style="width:62px;border:0"></TH>
+		<TH style="width:62px;border:0"></TH>
+		<TH style="width:122px;border:0"></TH>
+		<TH style="width:62px;border:0"></TH>
+		<TH style="width:40px;border:0"></TH>
+	</TR>
+
+	{{ strTable|safe }}
+
+	</TABLE>
+	</DIV>
+
+<BR>
+
+<input type="button" value = "印刷"     onclick="window.open('/sakura115/{{ PrintParam|safe }}');" class="button">
+　
+<input type="button" value = "経理部印刷"     onclick="window.open('/sakura116/{{ PrintParam|safe }}');" class="button">
+　
+<input type="submit" value = "終了" name="BtnSAKURA000" class="button">
+
+<BR>
+
+<p	class="LblMsg">{{ LblMsg }}</p>
+
+
+</form>
+</body>
+
+</html>

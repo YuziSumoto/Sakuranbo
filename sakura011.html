@@ -1,0 +1,83 @@
+<html>
+<head>
+  <style type="text/css">
+    .midashi  {background-color:cyan}
+    .text     {font-size:X-LARGE}
+    .button   {font-size:XX-LARGE}
+		.scr {
+			overflow-y: scroll;   /* スクロール表示 */ 
+			width:  1000px;
+			height: 600px;
+			border: 4px double #000000; 
+		}
+  </style>
+	<title>SAKURA011</title>
+</head>
+
+<body>
+	<form name="Main" action="/sakura011/">
+
+<TABLE Border="1">
+	<TR class="midashi">
+		<TH class="Midashi" style="width:30px">番号</TH>
+		<TH class="Midashi" style="width:80px">ＩＤ</TH>
+		<TH class="Midashi" style="width:120px">入居者氏名</TH>
+		<TH class="Midashi" style="width:60px">入退</TH>
+		<TH class="Midashi" style="width:60px">状況</TH>
+		<TH class="Midashi" style="width:40px">利用<BR>日数</TH>
+		<TH class="Midashi" style="width:40px">入院<BR>日数</TH>
+		<TH class="Midashi" style="width:40px">体験<BR>日数</TH>
+		<TH class="Midashi" style="width:60px">家賃補助</TH>
+		<TH class="Midashi" style="width:60px">家賃</TH>
+		<TH class="Midashi" style="width:60px">共益費</TH>
+		<TH class="Midashi" style="width:60px">管理費</TH>
+		<TH class="Midashi" style="width:100px">備考</TH>
+		<TH class="Midashi" style="width:40px">現金</TH>
+		<TH class="Midashi" style="width:40px">削除</TH>
+	</TR>
+</TABLE>
+
+	<DIV class="scr">
+		<TABLE Border="1">
+	<TR height="0px">  <!-- カラム幅指定行 -->
+		<TH style="width:30px;border:0"></TH>
+		<TH style="width:80px;border:0"></TH>
+		<TH style="width:120px;border:0"></TH>
+		<TH style="width:60px;border:0"></TH>
+		<TH style="width:60px;border:0"></TH>
+		<TH style="width:40px;border:0"></TH>
+		<TH style="width:40px;border:0"></TH>
+		<TH style="width:40px;border:0"></TH>
+		<TH style="width:60px;border:0"></TH>
+		<TH style="width:60px;border:0"></TH>
+		<TH style="width:60px;border:0"></TH>
+		<TH style="width:60px;border:0"></TH>
+		<TH style="width:100px;border:0"></TH>
+		<TH style="width:40px;border:0"></TH>
+		<TH style="width:40px;border:0"></TH>
+	</TR>
+
+		{{ strTable|safe }}
+		</TABLE>
+
+	</DIV>
+
+
+
+<BR>
+<input type="button" value = "印刷"      onclick="window.open('/sakura111/{{ PrintParam|safe }}&Kubun=1');" class="button">
+　
+
+<input type="submit" value = "前月複写" name="BtnFukusya" class="button" onclick="return confirm('現在のデータは削除されますがよろしいですか？')">
+　
+<input type="submit" value = "終了" name="BtnSAKURA000" class="button">
+
+<BR>
+
+<p	class="LblMsg">{{ LblMsg }}</p>
+
+
+</form>
+</body>
+
+</html>

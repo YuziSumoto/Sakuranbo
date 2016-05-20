@@ -5,14 +5,17 @@ import datetime
 class DatMain(db.Model):
 #  author          = db.UserProperty()
   Hizuke          = db.DateTimeProperty(auto_now_add=False) # 年月
-  Room            = db.IntegerProperty()                    # 居室番号
+  Room            = db.IntegerProperty()                    # 居室番号→番号
   KanzyaID        = db.IntegerProperty()                    # 患者ID
   KanzyaName      = db.StringProperty(multiline=False)      # 患者氏名(アクセス軽減のため非正規化）
   IOKubun         = db.IntegerProperty()                    # 入退院区分
   IONaiyo         = db.StringProperty(multiline=False)      # 内容(アクセス軽減のため非正規化）
   Zyokyo          = db.StringProperty(multiline=False)      # 状況
   Nissu           = db.IntegerProperty()                    # 入居日数
+  NyuinNissu      = db.IntegerProperty()                    # 入院日数
+  TaikenNissu     = db.IntegerProperty()                    # 体験日数
   GenkinFlg       = db.IntegerProperty()                    # 現金フラグ
+  Hozyo           = db.IntegerProperty()                    # 家賃補助フラグ 20160510 0:無し 1:有り(規定値)
   Biko            = db.StringProperty(multiline=False)      # 備考
   Kyoeki          = db.IntegerProperty()                    # 共益金（手入力 2015/10/05
   Kanri           = db.IntegerProperty()                    # 管理費（手入力 2015/10/05
@@ -20,16 +23,14 @@ class DatMain(db.Model):
   def GetKingaku(self,Nengetu,RecDat,RecMst): # 金額計算
 
     if RecMst == False: # マスタ無し？
+      Hozyo  = 0
       Yatin  = 0
       Kyoeki = 0
       Kanri  = 0
-    elif RecDat.IOKubun == 1:  # 入院中
-      if RecDat.KanzyaID != 6425:  # 新田登美子さん以外なら
-        Yatin  = RecMst.Yatin                     # 全額
-      elif RecDat.Hizuke >= datetime.datetime.strptime('2016/02/01', '%Y/%m/%d'):
-        Yatin  = RecMst.Yatin # 2016年2月分以降
-      else:
-        Yatin  = 30000                            # ３万円だそうな
+      return (Hozyo,Yatin,Kyoeki,Kanri) # ここで終わり
+
+    if RecDat.IOKubun == 1:  # 入院中
+      Yatin  = RecMst.Yatin                     # 全額
       Kyoeki = RecMst.KyoekiDay * RecDat.Nissu  # 共益、管理は日数分
       Kanri  = RecMst.KanriDay  * RecDat.Nissu  # 共益、管理は日数分
     elif RecDat.IOKubun == 2:  # 入退所
@@ -45,27 +46,47 @@ class DatMain(db.Model):
       Kyoeki = RecDat.Kyoeki  # 2015/10/05 共益費手入力対応
       Kanri  = RecDat.Kanri   # 2015/10/05 共益費手入力対応
     else: # 入退所
-      if RecDat.KanzyaID != 6425:  # 新田登美子さん以外なら
-        Yatin  = RecMst.Yatin                     # 全額
-      elif RecDat.Hizuke >= datetime.datetime.strptime('2016/02/01', '%Y/%m/%d'):
-        Yatin  = RecMst.Yatin # 2016年2月分以降
-      else:
-        Yatin  = 30000                            # ３万円だそうな
-      Yatin  = RecMst.Yatin
+      Yatin  = RecMst.Yatin                     # 全額
       Kyoeki = RecMst.Kyoeki
       Kanri  = RecMst.Kanri
 
-    return (Yatin,Kyoeki,Kanri)
+    if RecDat.Hozyo == 0:  # 補助無し
+      Hozyo = 0
+    elif Yatin <= 10000:   # 1万以下なら全額補助 
+      Hozyo = Yatin
+      Yatin = 0
+    else:
+      Hozyo = 10000
+      Yatin = Yatin - 10000 # 1万円引き
+
+    return (Hozyo,Yatin,Kyoeki,Kanri)
 
 class DatDenki(db.Model):
   Hizuke          = db.DateTimeProperty(auto_now_add=False) # 年月
   Room            = db.IntegerProperty()                    # 居室番号
-  Meter           = db.FloatProperty()                      # メータ
-
+  KanzyaID        = db.IntegerProperty()                    # 患者ID     20160510
+  KanzyaName      = db.StringProperty(multiline=False)      # 患者氏名(アクセス軽減のため非正規化）20160510
+  Meter           = db.FloatProperty()                      # メータ ～2016/05
+  SMeter1         = db.FloatProperty()                      # 開始メータ１ 2016/05～
+  EMeter1         = db.FloatProperty()                      # 終了メータ１ 2016/05～
+  SMeter2         = db.FloatProperty()                      # 開始メータ２ 2016/05～
+  EMeter2         = db.FloatProperty()                      # 終了メータ２ 2016/05～
   KeisanKubun     = db.IntegerProperty()                    # 計算区分 0:自動計算 1:手入力
   Comment         = db.StringProperty(multiline=False)      # コメント
   Kingaku         = db.IntegerProperty()                    # 手入力請求額
 
+  def DelRec(self,Nengetu,Room):
+
+    sql  = "SELECT * FROM DatDenki"
+    sql += " where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')" 
+    sql += "  and  Room = " + Room
+
+    Snap = db.GqlQuery(sql)
+    for Rec in SnapData.fetch(Snap.count()):
+      Rec.delete()
+
+    return
+  
 #  電気データ取得
   def GetRec(self,Nengetu,Room):
 

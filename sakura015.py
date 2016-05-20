@@ -25,19 +25,47 @@ class MainHandler(webapp2.RequestHandler):
       self.redirect(users.create_logout_url(self.request.uri))
       return
 
-    if self.request.get('Nengetu') != '': # 初期表示→パラメタ取得
-      Nengetu = self.request.get('Nengetu')
-      cookieStr = 'Nengetu=' + Nengetu + ';' # expires=Fri, 31-Dec-2020 23:59:59 GMT'
-      self.response.headers.add_header('Set-Cookie', cookieStr.encode('shift-jis'))
-      Room = self.request.get('Room')
-      cookieStr = 'Room=' + Room + ';' # expires=Fri, 31-Dec-2020 23:59:59 GMT'
-      self.response.headers.add_header('Set-Cookie', cookieStr.encode('shift-jis'))
-    else:    # ２回目からはクッキー取得
-      Nengetu = self.request.cookies.get('Nengetu', '')
-      Room    = self.request.cookies.get('Room', '')
+    Nengetu = self.request.get('Nengetu')
+    cookieStr = 'Nengetu=' + Nengetu + ';' 
+    self.response.headers.add_header('Set-Cookie', cookieStr.encode('shift-jis'))
+
+    Room = self.request.get('Room')
+    cookieStr = 'Room=' + Room + ';' 
+    self.response.headers.add_header('Set-Cookie', cookieStr.encode('shift-jis'))
+
+    Return = self.request.get('Return')
+    cookieStr = 'Return=' + Return + ';' 
+    self.response.headers.add_header('Set-Cookie', cookieStr.encode('shift-jis'))
+
+    LblMsg = ""
+
+    Rec = {}
+    Rec = self.DataGet(Rec,Nengetu,Room)
+
+    template_values = { 'LblRoom'     :Room,
+                        'Rec'         : Rec,
+                        'StrKanzya'   : self.SetKanzya(Rec['CmbKanzya']),
+                        'StrNyutaiin' : self.SetNyutaiin(Rec['CmbNyutaiin']),
+                        'Nissu'    : self.SetNissu(),
+                        'StrGenkin'    : self.SetGenkin(Rec['CmbGenkin']),
+                        'LblMsg' : LblMsg #""
+                      }
+    path = os.path.join(os.path.dirname(__file__), 'sakura015.html')
+    self.response.out.write(template.render(path, template_values))
+
+  def post(self):
+
+    user = users.get_current_user() # ログオン確認
+    if MstUser().ChkUser(user.email()) == False:
+      self.redirect(users.create_logout_url(self.request.uri))
+      return
+
+    Nengetu = self.request.cookies.get('Nengetu', '')
+    Room    = self.request.cookies.get('Room', '')
+    Return  = self.request.cookies.get('Return', '')
 
     if self.request.get('BtnSAKURA010')  != '': # 中止
-      self.redirect("/sakura010/?Nengetu=" + Nengetu )
+      self.redirect("/" + Return + "/?Nengetu=" + Nengetu )
       return
 
     LblMsg = ""
@@ -48,7 +76,7 @@ class MainHandler(webapp2.RequestHandler):
       if ErrFlg == False:
         self.DataDel(Nengetu,Room)
         self.DataAdd(Nengetu,Room)
-        self.redirect("/sakura010/?Nengetu=" + Nengetu )
+        self.redirect("/" + Return + "/?Nengetu=" + Nengetu )
         return
 
     Rec = {}
@@ -56,15 +84,11 @@ class MainHandler(webapp2.RequestHandler):
     for ParaName in ParaNames:
       Rec[ParaName]    = self.request.get(ParaName)
 
-    if  self.request.get('Nengetu'): # 初回表示?
-      Rec = self.DataGet(Rec,Nengetu,Room)
-
-
     template_values = { 'LblRoom'     :Room,
                         'Rec'         : Rec,
                         'StrKanzya'   : self.SetKanzya(Rec['CmbKanzya']),
                         'StrNyutaiin' : self.SetNyutaiin(Rec['CmbNyutaiin']),
-                        'StrNissu'    : self.SetNissu(Rec['CmbNissu']),
+                        'Nissu'    : self.SetNissu(),
                         'StrGenkin'    : self.SetGenkin(Rec['CmbGenkin']),
                         'LblMsg' : LblMsg #""
                       }
@@ -84,6 +108,9 @@ class MainHandler(webapp2.RequestHandler):
   def SetKanzya(self,KanzyaID):
 
     retStr = ""
+
+    retStr += "<option value=0"
+    retStr += ">&nbsp</option>"
 
     SnapMst = db.GqlQuery("SELECT * FROM MstKanzya Order by Kana")
     for RecMst in SnapMst.fetch(100):
@@ -122,25 +149,11 @@ class MainHandler(webapp2.RequestHandler):
 
     return retStr
 
-  def SetNissu(self,Nissu):
-
-    retStr = ""
-
-    retStr += "<option value='0'>"
-    retStr += "</option>"
-
-    for i in range(1,32):
-      retStr += "<option value='"
-      retStr += str(i)
-      retStr += "'"
-      if Nissu == i:  # 選択判定
-        retStr += " selected "
-        Flg = False
-      retStr += ">"
-      retStr += str(i)
-      retStr += "</option>"
-
-    return retStr
+  def SetNissu(self):
+    Nissu = []
+    for Ctr in range(0,32):
+      Nissu.append(Ctr)
+    return Nissu
 
   def SetGenkin(self,Genkin):
 
@@ -171,9 +184,12 @@ class MainHandler(webapp2.RequestHandler):
     Rec['TxtYatin']     = 0
     Rec['TxtKyoeki']    = 0
     Rec['TxtKanri']     = 0
-    Rec['CmbNissu']     = 0
+    Rec['Nissu']        = 0
+    Rec['NyuinNissu']   = 0
+    Rec['TaikenNissu']  = 0
     Rec['TxtBiko']      = ""
     Rec['CmbGenkin']    = 0
+    Rec['Hozyo']        = 1 # 2016/05/13
 
     SnapData = db.GqlQuery(sql)
     results = SnapData.fetch(1)
@@ -183,9 +199,13 @@ class MainHandler(webapp2.RequestHandler):
       Rec['CmbNyutaiin']  = result.IOKubun
       Rec['TxtZyokyo']    = result.Zyokyo
       Rec['TxtYatin']     = 0
-      Rec['CmbNissu']     = result.Nissu
+      Rec['Nissu']        = result.Nissu
+      Rec['NyuinNissu']   = result.NyuinNissu
+      Rec['TaikenNissu']  = result.TaikenNissu
       Rec['TxtBiko']      = result.Biko
       Rec['CmbGenkin']    = result.GenkinFlg
+
+      Rec['Hozyo']        = result.Hozyo # 2016/05/13
 
       if result.Kyoeki != None:
         Rec['TxtKyoeki']    = result.Kyoeki # 0  20151005
@@ -200,10 +220,9 @@ class MainHandler(webapp2.RequestHandler):
     sql += " where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')" 
     sql += "  and  Room = " + Room
 
-    SnapData = db.GqlQuery(sql)
-    results = SnapData.fetch(1)
-    for result in results:
-      result.delete()
+    Snap = db.GqlQuery(sql)
+    for Rec in Snap.fetch(Snap.count()):
+      Rec.delete()
 
   def DataAdd(self,Hizuke,Room):
 
@@ -216,9 +235,18 @@ class MainHandler(webapp2.RequestHandler):
     DynaData.IOKubun     = int(self.request.get('CmbNyutaiin'))
     DynaData.IONaiyo     = MstKoumoku().GetIOKubun(DynaData.IOKubun)
     DynaData.Zyokyo      = self.request.get('TxtZyokyo')
-    DynaData.Nissu       = int(self.request.get('CmbNissu'))
+
+    DynaData.Nissu       = int(self.request.get('Nissu'))
+    DynaData.NyuinNissu  = int(self.request.get('NyuinNissu'))
+    DynaData.TaikenNissu = int(self.request.get('TaikenNissu'))
+
     DynaData.GenkinFlg   = int(self.request.get('CmbGenkin'))
     DynaData.Biko        = self.request.get('TxtBiko')
+
+    if  self.request.get('Hozyo') == "1":
+      DynaData.Hozyo     = 1
+    else:
+      DynaData.Hozyo     = 0
  
     DynaData.Kyoeki   = int(self.request.get('TxtKyoeki'))    # 2015/10/05
     DynaData.Kanri        = int(self.request.get('TxtKanri')) # 2015/10/05

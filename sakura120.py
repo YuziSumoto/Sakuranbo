@@ -79,12 +79,16 @@ class MainHandler(webapp2.RequestHandler):
 
     Nengetu = self.request.get('LstDate')
 
-    SnapMst = db.GqlQuery("SELECT * FROM MstRoom Order by Room")
+#    Sql =  "SELECT * FROM  MstRoom"
+#    Sql += " Where Room <= 100"
+#    Sql += " Order by Room"
+#    SnapMst = db.GqlQuery(Sql)
     OutRow = 5
 
     OutRec = 0
-    RecCtr = SnapMst.count()
-    RecMst = SnapMst.fetch(RecCtr)
+    RecCtr = 40  #SnapMst.count()
+#    RecMst = SnapMst.fetch(RecCtr)
+    
 
     Soukei = 0
     
@@ -110,7 +114,8 @@ class MainHandler(webapp2.RequestHandler):
 
         OutRec += 1
         while OutRec <= RecCtr: # 出力対象判定
-          ID,Kingaku = self.GetData(Nengetu,RecMst[OutRec - 1].Room,Kubun,WDatMain,WDatDenki,RecYatinMst)
+#          ID,Kingaku = self.GetData(Nengetu,RecMst[OutRec - 1].Room,Kubun,WDatMain,WDatDenki,RecYatinMst)
+          ID,Kingaku = self.GetData(Nengetu,OutRec,Kubun,WDatMain,WDatDenki,RecYatinMst)
           if ID != "" and Kingaku !="" and Kingaku != 0:
             break
           OutRec += 1
@@ -137,7 +142,8 @@ class MainHandler(webapp2.RequestHandler):
             Tyousu1 = u""
             Tyousu2 = u"〃"
           WorkSheet.write_merge(OutRow,1 + OutRow,ColOffset[Page] ,ColOffset[Page],Honzitu,Style)
-          Room = str(RecMst[OutRec - 1].Room)
+#          Room = str(RecMst[OutRec - 1].Room)
+          Room = str(OutRec)
         else:
           ID = ""
           Kingaku = 0  # 金額
@@ -200,10 +206,10 @@ class MainHandler(webapp2.RequestHandler):
     if SnapRec.GenkinFlg == 1: # 現金フラグが立ってる人は０円
       Kingaku = 0
     elif Kubun == 0:     # 家賃
-      Yatin,Kyoeki,Kanri =  WDatMain.GetKingaku(Nengetu,SnapRec,RecYatinMst)
+      Hozyo,Yatin,Kyoeki,Kanri =  WDatMain.GetKingaku(Nengetu,SnapRec,RecYatinMst)
       Kingaku = Yatin + Kyoeki
     elif Kubun == 1:   # 管理費
-      Yatin,Kyoeki,Kanri =  WDatMain.GetKingaku(Nengetu,SnapRec,RecYatinMst)
+      Hozyo,Yatin,Kyoeki,Kanri =  WDatMain.GetKingaku(Nengetu,SnapRec,RecYatinMst)
       Kingaku = Kanri
     else:              # 電気代
       KeisanKubun,Comment,Kingaku = WDatDenki.GetKingaku(Nengetu,SnapRec.Room,RecYatinMst.DenkiTanka)

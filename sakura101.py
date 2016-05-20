@@ -35,7 +35,7 @@ class MainHandler(webapp2.RequestHandler):
 
     self.response.headers['Content-Type'] = 'application/ms-excel'
     self.response.headers['Content-Transfer-Encoding'] = 'Binary'
-    self.response.headers['Content-disposition'] = 'attachment; filename="sakura100.xls"'
+    self.response.headers['Content-disposition'] = 'attachment; filename="sakura101.xls"'
     WorkBook.save(self.response.out)
 
   def TableDataSet(self,Nengetu,Kubun,Meigi):
@@ -47,8 +47,8 @@ class MainHandler(webapp2.RequestHandler):
     RecYatinMst = MstYatin().GetRec(Nengetu) # 家賃マスタ取得
 
     Sql =  "SELECT * FROM DatMain"
-    Sql += " Where Room >= 100"
-    Sql += "  And  Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
+    Sql += " Where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
+    Sql += "  And  Room   < 100" # 2016/05 Add
     Sql += "  Order by Room"
     SnapDat = db.GqlQuery(Sql)
     MaxRec = SnapDat.count()
@@ -87,7 +87,7 @@ class MainHandler(webapp2.RequestHandler):
           Hozyo,Yatin,Kyoeki,Kanri = WDatMain.GetKingaku(Nengetu,Rec[RowCtr],RecYatinMst) # 金額取得
           DenkiDai = 0
         elif Kubun == 2:
-          Hozyo,Yatin,Kyoeki,Kanri = WDatMain.GetKingaku(Nengetu,Rec[RowCtr],RecYatinMst) # 金額取得
+          Yatin,Kyoeki,Kanri = WDatMain.GetKingaku(Nengetu,Rec[RowCtr],RecYatinMst) # 金額取得
           DenkiDai = 0
         else:
           Yatin  = 0
@@ -218,18 +218,21 @@ class MainHandler(webapp2.RequestHandler):
     if   Kubun == 1:
       Title1 = str(Tuki) + u"月分家賃"
       Title2 = str(Tuki) + u"月分共益費"
+      Title3 = str(Tuki) + u"月分管理費"
     elif Kubun == 2:
       Title1 = str(Tuki) + u"月分管理費"
       Title2 = u" "
+      Title3 = u" "
     elif Kubun == 3:
       Title1 = str(Tuki) + u"月分電気代"
       Title2 = u" "
+      Title3 = u" "
 
     for i in range(0,2):
       ColSpan = i * 9
       WorkSheet.write(10 + RowOffset,0 + ColSpan,Title1,Styles["Style002"])
-      WorkSheet.write(11 + RowOffset,0 + ColSpan,Title2  ,Styles["Style002"])
-      WorkSheet.write(12 + RowOffset,0 + ColSpan," ",Styles["Style002"])
+      WorkSheet.write(11 + RowOffset,0 + ColSpan,Title2,Styles["Style002"])
+      WorkSheet.write(12 + RowOffset,0 + ColSpan,Title3,Styles["Style002"])
 
     return
   
@@ -242,20 +245,25 @@ class MainHandler(webapp2.RequestHandler):
     if Kubun  == 1:
       Kingaku1 = '{:,d}'.format(Yatin)
       Kingaku2 = '{:,d}'.format(Kyoeki)
+      Kingaku3 = '{:,d}'.format(Kanri)
     elif Kubun == 2:
       Kingaku1 = '{:,d}'.format(Kanri)
       Kingaku2 = " "
+      Kingaku3 = " "
     else:
       Kingaku1 = '{:,d}'.format(int(round(DenkiDai,0)))
       Kingaku2 = " "
+      Kingaku3 = " "
 
     for i in range(0,2):
       ColSpan = i * 9
-      WorkSheet.write(10 + RowOffset,1 + ColSpan,Kingaku1    ,Styles["Style003"])
-      WorkSheet.write(11 + RowOffset,1 + ColSpan,Kingaku2   ,Styles["Style003"])
+      WorkSheet.write(10 + RowOffset,1 + ColSpan,Kingaku1 ,Styles["Style003"])
+      WorkSheet.write(11 + RowOffset,1 + ColSpan,Kingaku2 ,Styles["Style003"])
+      WorkSheet.write(12 + RowOffset,1 + ColSpan,Kingaku3 ,Styles["Style003"])
     
     if   Kubun == 1:
-      Goukei = '{:,d}'.format(Yatin + Kyoeki)
+#      Goukei = '{:,d}'.format(Yatin + Kyoeki)
+      Goukei = '{:,d}'.format(Yatin + Kyoeki + Kanri)
     elif Kubun == 2:
       Goukei = '{:,d}'.format(Kanri)
     else:
@@ -263,7 +271,7 @@ class MainHandler(webapp2.RequestHandler):
 
     for i in range(0,2):
       ColSpan = i * 9
-      WorkSheet.write(12 + RowOffset,1 + ColSpan,Goukei ,Styles["Style003"])
+#      WorkSheet.write(12 + RowOffset,1 + ColSpan,Goukei ,Styles["Style003"])
       WorkSheet.write(12 + RowOffset,5 + ColSpan,Goukei   ,Styles["Style003"])
 
     return
@@ -372,5 +380,5 @@ class MainHandler(webapp2.RequestHandler):
     return Style
 
 app = webapp2.WSGIApplication([
-    ('/sakura100/', MainHandler)
+    ('/sakura101/', MainHandler)
 ], debug=True)
