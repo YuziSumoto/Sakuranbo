@@ -34,14 +34,17 @@ class MainHandler(webapp2.RequestHandler):
       self.redirect(users.create_logout_url(self.request.uri))
       return
 
-    WorkBook =  self.TableDataSet(self.request.get('LstDate'))
-
+    if  self.request.get('PG') == "":
+      WorkBook =  self.TableDataSet(self.request.get('LstDate'),0)
+    else:
+      WorkBook =  self.TableDataSet(self.request.get('LstDate'),1)
+    
     self.response.headers['Content-Type'] = 'application/ms-excel'
     self.response.headers['Content-Transfer-Encoding'] = 'Binary'
     self.response.headers['Content-disposition'] = 'attachment; filename="sakura116.xls"'
     WorkBook.save(self.response.out)
 
-  def TableDataSet(self,Nengetu):
+  def TableDataSet(self,Nengetu,Mode): # Mode 0:2016/04まで  1:2016/05から
 
     WorkBook = xlwt.Workbook()  # 新規Excelブック
 
@@ -56,13 +59,20 @@ class MainHandler(webapp2.RequestHandler):
 
     RecYatinMst = MstYatin().GetRec(Nengetu) # 家賃マスタ取得
 
-    Sql =  "SELECT * FROM DatMain"  # 家賃データ取得
-    Sql += " Where Room >= 100" # 2016/05/17 Add
-    Sql += "  And  Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
-    Sql += "  Order by Room"
-    SnapDat = db.GqlQuery(Sql)
+    if Mode == 0:
+      Sql =  "SELECT * FROM DatMain"  # 家賃データ取得
+      Sql += " Where Room >= 100" # 2016/05/17 Add
+      Sql += "  And  Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
+      Sql += "  Order by Room"
+    else:
+      Sql =  "SELECT * FROM DatDenki"  # 家賃データ取得
+      Sql += " Where Room <= 100" # 2016/05/17 Add
+      Sql += "  And  Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
+      Sql += "  Order by Room"
 
-    RecDat = SnapDat.fetch(100) # データ取得
+    SnapDat = db.GqlQuery(Sql)
+    
+    RecDat = SnapDat.fetch(SnapDat.count()) # データ取得
     OutRow = 2 # 出力行
 
     Goukei = 0
@@ -72,7 +82,11 @@ class MainHandler(webapp2.RequestHandler):
 #      if Rec.GenkinFlg == 1: # 現金フラグ立ってる人は # 2015/08/24 現金の人も印刷する！
 #        continue  # 出力しない
       OutRow += 1
-      OutFlg,Kingaku = self.DataSet(WorkSheet,OutRow,Nengetu,Rec,RecYatinMst.DenkiTanka)
+      if Mode == 0:
+        OutFlg,Kingaku = self.DataSet(WorkSheet,OutRow,Nengetu,Rec,RecYatinMst.DenkiTanka)
+      else:
+        OutFlg,Kingaku = self.DataSet2(WorkSheet,OutRow,Nengetu,Rec,RecYatinMst.DenkiTanka)
+
       if OutFlg == False: # 出力対象外
         OutRow -= 1 # やり直し
       else:
@@ -90,14 +104,11 @@ class MainHandler(webapp2.RequestHandler):
 
     return  WorkBook
 
-  def DataSet(self,WorkSheet,OutRow,Nengetu,Rec,DenkiTanka):  # データ取得
+  def DataSet(self,WorkSheet,OutRow,Nengetu,Rec,DenkiTanka):  # データ取得 (2016/04まで
 
     WDatDenki = DatDenki()
-
     Style = self.SetStyle("THIN","THIN","THIN","THIN",False,False)
-
     KeisanKubun,Comment,Kingaku = WDatDenki.GetKingaku(Nengetu,Rec.Room,DenkiTanka)
-
     if Kingaku == 0: # ０円の人は印刷しない
       return False,0
 
@@ -121,6 +132,44 @@ class MainHandler(webapp2.RequestHandler):
     if KonMeter != None:
       WorkSheet.write(OutRow,5,('%5.2f' % KonMeter),Style)
       WorkSheet.write(OutRow,6,('%5.2f' % (KonMeter - ZenMeter)),Style)
+
+    if KeisanKubun == 1:
+      WKingaku = u"手入力"
+    else:
+      WKingaku = u"￥" + ('%5.2f' % Kingaku)
+    WorkSheet.write(OutRow,7,WKingaku,Style)
+
+    WorkSheet.write(OutRow,8,u"￥" + "{:,d}".format(int(round(Kingaku,0))),Style)
+
+    return True,int(round(Kingaku,0))
+
+  def DataSet2(self,WorkSheet,OutRow,Nengetu,Rec,DenkiTanka):  # データ取得 (2016/04まで
+
+    WDatDenki = DatDenki()
+    Style = self.SetStyle("THIN","THIN","THIN","THIN",False,False)
+
+    Siyoryo = WDatDenki.GetSiyoryo(Rec)
+    KeisanKubun,Comment,Kingaku = WDatDenki.GetKingaku2(Nengetu,Rec.Room,DenkiTanka,Siyoryo)
+    if Kingaku == 0: # ０円の人は印刷しない
+      return False,0
+
+    WorkSheet.write(OutRow,2,Rec.KanzyaName,Style) # 患者名
+    Style = self.SetStyle("THIN","THIN","THIN","THIN",False,xlwt.Alignment.HORZ_RIGHT)
+    WorkSheet.write(OutRow,1,str(Rec.KanzyaID),Style)
+
+    if Comment == None:
+      WorkSheet.write(OutRow,3,"",Style)
+    else:
+      WorkSheet.write(OutRow,3,Comment,Style)
+
+    Style = self.SetStyle("THIN","THIN","THIN","THIN",False,xlwt.Alignment.HORZ_RIGHT)
+
+#    WorkSheet.write(OutRow,4,('%5.2f' % ZenMeter),Style)
+
+#    KonMeter = WDatDenki.GetDenki(Nengetu,str(Rec.Room))
+#    if KonMeter != None:
+#      WorkSheet.write(OutRow,5,('%5.2f' % KonMeter),Style)
+    WorkSheet.write(OutRow,6,('%5.2f' % Siyoryo),Style)
 
     if KeisanKubun == 1:
       WKingaku = u"手入力"

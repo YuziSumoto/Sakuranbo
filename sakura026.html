@@ -55,23 +55,25 @@
 		<TH class="midashi">計算区分</TH>
 		<TD>
 			<input type="radio" value=0 name="KeisanKubun" class="text"
-			 {{ Rec.OptKeisan0 }}/>自動計算 <BR>
+				{% ifequal Rec.KeisanKubun|default_if_none:0 0 %} checked {% endifequal %}
+			/>自動計算 <BR>
 			<input type="radio" value=1 name="KeisanKubun" class="text"
-			 {{ Rec.OptKeisan1 }}/>金額指定
+				{% ifequal Rec.KeisanKubun|default_if_none:0 1 %} checked {% endifequal %}
+			/>金額指定
 		</TD>
 	</TR>
 
 	<TR>
 		<TH class="midashi">コメント</TH>
 		<TD>
-			<input value="{{ Rec.Comment }}" name="Comment" class="text" />
+			<input value="{{ Rec.Comment|default_if_none:"" }}" name="Comment" class="text" />
 		</TD>
 	</TR>
 
 	<TR>
 		<TH class="midashi">金額指定</TH>
 		<TD>
-			<input  type="number"  value={{ Rec.Kingaku }} name="Kingaku" class="text" />
+			<input  type="number"  value={{ Rec.Kingaku|default_if_none:0 }} name="Kingaku" class="text" />
 		</TD>
 	</TR>
 

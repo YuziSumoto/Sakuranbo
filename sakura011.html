@@ -6,7 +6,7 @@
     .button   {font-size:XX-LARGE}
 		.scr {
 			overflow-y: scroll;   /* スクロール表示 */ 
-			width:  1000px;
+			width:  1060px;
 			height: 600px;
 			border: 4px double #000000; 
 		}
@@ -17,20 +17,20 @@
 <body>
 	<form name="Main" action="/sakura011/">
 
-<TABLE Border="1">
+<TABLE Border="1" width="1030px" style="table-layout:fixed;">
 	<TR class="midashi">
-		<TH class="Midashi" style="width:30px">番号</TH>
-		<TH class="Midashi" style="width:80px">ＩＤ</TH>
+		<TH class="Midashi" style="width:34px">番号</TH>
+		<TH class="Midashi" style="width:40px">ＩＤ</TH>
 		<TH class="Midashi" style="width:120px">入居者氏名</TH>
 		<TH class="Midashi" style="width:60px">入退</TH>
 		<TH class="Midashi" style="width:60px">状況</TH>
 		<TH class="Midashi" style="width:40px">利用<BR>日数</TH>
 		<TH class="Midashi" style="width:40px">入院<BR>日数</TH>
 		<TH class="Midashi" style="width:40px">体験<BR>日数</TH>
-		<TH class="Midashi" style="width:60px">家賃補助</TH>
-		<TH class="Midashi" style="width:60px">家賃</TH>
-		<TH class="Midashi" style="width:60px">共益費</TH>
-		<TH class="Midashi" style="width:60px">管理費</TH>
+		<TH class="Midashi" style="width:80px">家賃補助</TH>
+		<TH class="Midashi" style="width:80px">家賃</TH>
+		<TH class="Midashi" style="width:80px">水道光熱費</TH>
+		<TH class="Midashi" style="width:90px">共同場所<BR>維持費</TH>
 		<TH class="Midashi" style="width:100px">備考</TH>
 		<TH class="Midashi" style="width:40px">現金</TH>
 		<TH class="Midashi" style="width:40px">削除</TH>
@@ -38,23 +38,23 @@
 </TABLE>
 
 	<DIV class="scr">
-		<TABLE Border="1">
+		<TABLE Border="1" width="1030px" style="table-layout:fixed;">
 	<TR height="0px">  <!-- カラム幅指定行 -->
-		<TH style="width:30px;border:0"></TH>
-		<TH style="width:80px;border:0"></TH>
-		<TH style="width:120px;border:0"></TH>
-		<TH style="width:60px;border:0"></TH>
-		<TH style="width:60px;border:0"></TH>
-		<TH style="width:40px;border:0"></TH>
-		<TH style="width:40px;border:0"></TH>
-		<TH style="width:40px;border:0"></TH>
-		<TH style="width:60px;border:0"></TH>
-		<TH style="width:60px;border:0"></TH>
-		<TH style="width:60px;border:0"></TH>
-		<TH style="width:60px;border:0"></TH>
-		<TH style="width:100px;border:0"></TH>
-		<TH style="width:40px;border:0"></TH>
-		<TH style="width:40px;border:0"></TH>
+		<TH style="width:34px;border:0"></TH>
+		<TH style="width:42px;border:0"></TH>
+		<TH style="width:122px;border:0"></TH>
+		<TH style="width:62px;border:0"></TH>
+		<TH style="width:62px;border:0"></TH>
+		<TH style="width:42px;border:0"></TH>
+		<TH style="width:42px;border:0"></TH>
+		<TH style="width:42px;border:0"></TH>
+		<TH style="width:82px;border:0"></TH>
+		<TH style="width:82px;border:0"></TH>
+		<TH style="width:82px;border:0"></TH>
+		<TH style="width:92px;border:0"></TH>
+		<TH style="width:102px;border:0"></TH>
+		<TH style="width:42px;border:0"></TH>
+		<TH style="width:42px;border:0"></TH>
 	</TR>
 
 		{{ strTable|safe }}

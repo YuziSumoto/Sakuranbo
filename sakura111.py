@@ -77,10 +77,10 @@ class MainHandler(webapp2.RequestHandler):
     font = xlwt.Font() # Create the Font
     font.height = 200
     Style.font = font
-    WorkSheet.write(OutRow,4,u"家賃+共益費",Style)
-    WorkSheet.write(OutRow,9,u"当月家賃",Style)
-    WorkSheet.write(OutRow,10,u"当月共益費",Style)
-    WorkSheet.write(OutRow,11,u"当月管理費",Style)
+    WorkSheet.write(OutRow,4,u"家賃+水道光熱費",Style)
+    WorkSheet.write(OutRow,9,u"家賃",Style)
+    WorkSheet.write(OutRow,10,u"水道光熱費",Style)
+    WorkSheet.write(OutRow,11,u"共用場所維持費",Style)
     OutRow += 1
     Style = self.SetStyle(False,False,False,False,False,xlwt.Alignment.HORZ_RIGHT)
     font = xlwt.Font() # Create the Font
@@ -229,7 +229,7 @@ class MainHandler(webapp2.RequestHandler):
 
   def SetColRowSize(self,WorkSheet):  # 行,列サイズセット
 
-    ColWidth = ["列の幅",4,6,8,10.5,8.5,4,4,4,7,7,7,7,4]
+    ColWidth = ["列の幅",4,6,8,10.5,10.5,4,4,4,7,10,10,14,8]
     for i in range(1,14):
       WorkSheet.col(i - 1).width = int(ColWidth[i] * 400)
 
@@ -261,8 +261,8 @@ class MainHandler(webapp2.RequestHandler):
     WorkSheet.write(2,7,u"体日",Style)
     WorkSheet.write(2,8,u"補助",Style)
     WorkSheet.write(2,9,u"家賃",Style)
-    WorkSheet.write(2,10,u"共益費",Style)
-    WorkSheet.write(2,11,u"管理費",Style)
+    WorkSheet.write(2,10,u"水道光熱費",Style)
+    WorkSheet.write(2,11,u"共用場所維持費",Style)
     WorkSheet.write(2,12,u"現金",Style)
 
     return

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
+#
+#  サクランボ請求領収書印刷
+#
 import webapp2
 
 #import os
@@ -46,10 +49,17 @@ class MainHandler(webapp2.RequestHandler):
     WDatDenki = DatDenki()
     RecYatinMst = MstYatin().GetRec(Nengetu) # 家賃マスタ取得
 
-    Sql =  "SELECT * FROM DatMain"
-    Sql += " Where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
-    Sql += "  And  Room   < 100" # 2016/05 Add
-    Sql += "  Order by Room"
+    if Kubun ==1: # 家賃
+      Sql =  "SELECT * FROM DatMain"
+      Sql += " Where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
+      Sql += "  And  Room   < 100" # 2016/05 Add
+      Sql += "  Order by Room"
+    else:  # 電気代
+      Sql =  "SELECT * FROM DatDenki"
+      Sql += " Where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
+      Sql += "  And  Room   < 100" # 2016/05 Add
+      Sql += "  Order by Room"
+      
     SnapDat = db.GqlQuery(Sql)
     MaxRec = SnapDat.count()
     if MaxRec == 0:
@@ -58,51 +68,34 @@ class MainHandler(webapp2.RequestHandler):
 
     Styles = self.SetStyles()
 
-    RecDat = SnapDat.fetch(100) # データ取得
-    RecCtr = 0
-    while (RecCtr < MaxRec): # 全レコード処理したら終わり！
+    for RecDat in SnapDat.fetch(SnapDat.count()): # 全レコード処理
 
-      Rec = ["",""] # レコード退避領域初期化
-      Rec[0] = RecDat[RecCtr] # １件目取得
-      SheetName = str(Rec[0].Room) # シート名セット
-      RecCtr += 1 
-
-      if RecCtr >= MaxRec: # 終わり？
-        Rec[1] = ""
-      else:
-        Rec[1] = RecDat[RecCtr]  # ２件目取得
-        SheetName += u"・" + str(Rec[1].Room) # シート名セット
-      RecCtr += 1
-
+      SheetName = str(RecDat.Room) # シート名セット
       WorkSheet = WorkBook.add_sheet(SheetName)  # 新規Excelシート
       self.SetPrintParam(WorkSheet)  # 用紙サイズ等セット
-
       self.SetColRowSize(WorkSheet) # 行,列サイズセット
+      self.SetTitle(WorkSheet,Nengetu,Kubun,Meigi,Styles)      # 固定部分セット
 
-      for RowCtr in range(0,2): # １ページ２件
-        RowOffset = RowCtr * 18
-        self.SetTitle(WorkSheet,RowOffset,Kubun,Meigi,Styles)      # 固定部分セット
+      if Kubun == 1: # 家賃
+        Hozyo,Yatin,Kyoeki,Kanri = WDatMain.GetKingaku(Nengetu,RecDat,RecYatinMst) # 金額取得
+        DenkiDai = 0
+        Nissu = RecDat.Nissu
+      elif Kubun == 2:
+        Yatin,Kyoeki,Kanri = WDatMain.GetKingaku(Nengetu,Rec[RowCtr],RecYatinMst) # 金額取得
+        DenkiDai = 0
+        Nissu = RecDat.Nissu
+      else:  # 電気代
+        Yatin  = 0
+        Kyoeki = 0
+        Kanri  = 0
+        Nissu = 0
+        Siyoryo = WDatDenki.GetSiyoryo(RecDat)
+        KeisanKubun,Comment,DenkiDai = WDatDenki.GetKingaku2(Nengetu,RecDat.Room,RecYatinMst.DenkiTanka,Siyoryo)
 
-        if Kubun == 1:
-          Hozyo,Yatin,Kyoeki,Kanri = WDatMain.GetKingaku(Nengetu,Rec[RowCtr],RecYatinMst) # 金額取得
-          DenkiDai = 0
-        elif Kubun == 2:
-          Yatin,Kyoeki,Kanri = WDatMain.GetKingaku(Nengetu,Rec[RowCtr],RecYatinMst) # 金額取得
-          DenkiDai = 0
-        else:
-          Yatin  = 0
-          Kyoeki = 0
-          Kanri  = 0
-          KeisanKubun,Comment,DenkiDai = WDatDenki.GetKingaku(Nengetu,Rec[RowCtr].Room,RecYatinMst.DenkiTanka)
+      self.SetKanzyaName(WorkSheet,RecDat.KanzyaName,Styles)
+      self.SetKingaku(WorkSheet,Kubun,Nissu,Yatin,Kyoeki,Kanri,DenkiDai,Styles)
 
-        self.SetKanzyaName(WorkSheet,RowOffset,Rec[RowCtr].KanzyaName,Styles)
-        Tuki = datetime.datetime.strptime(Nengetu + "/01", '%Y/%m/%d').month
-        self.SetKoumokuName(WorkSheet,RowOffset,Tuki,Kubun,Styles)
-        self.SetKingaku(WorkSheet,RowOffset,Kubun,Yatin,Kyoeki,Kanri,DenkiDai,Styles)
-
-        if RecCtr > MaxRec:  
-          break
-
+ 
     return  WorkBook
 
   def SetStyles(self):
@@ -115,15 +108,15 @@ class MainHandler(webapp2.RequestHandler):
     Style.font = font # Apply the Font to the Style
     Styles["Style001"] = Style
  
-    Style = self.SetStyle("DOTTED","DOTTED","DOTTED","DOTTED",xlwt.Alignment.VERT_CENTER,xlwt.Alignment.HORZ_CENTER) # Style200
+    Style = self.SetStyle("THIN","THIN","THIN","THIN",xlwt.Alignment.VERT_CENTER,xlwt.Alignment.HORZ_CENTER) # Style200
     font = xlwt.Font() # Create the Font
     font.height = 200
     Style.font = font # Apply the Font to the Style
     Styles["Style002"] = Style
 
-    Style = self.SetStyle("DOTTED","DOTTED",False,"DOTTED",xlwt.Alignment.VERT_CENTER,xlwt.Alignment.HORZ_RIGHT) # Style350
+    Style = self.SetStyle("THIN","THIN","THIN","THIN",xlwt.Alignment.VERT_CENTER,xlwt.Alignment.HORZ_RIGHT) # Style350
     font = xlwt.Font() # Create the Font
-    font.height = 450
+    font.height = 350
     Style.font = font # Apply the Font to the Style
     Styles["Style003"] = Style
 
@@ -145,9 +138,9 @@ class MainHandler(webapp2.RequestHandler):
     Style.font = font # Apply the Font to the Style
     Styles["Style006"] = Style
 
-    Style = self.SetStyle("DOTTED","DOTTED","DOTTED","DOTTED",xlwt.Alignment.VERT_CENTER,xlwt.Alignment.HORZ_CENTER)
+    Style = self.SetStyle("THIN","THIN","THIN","THIN",xlwt.Alignment.VERT_TOP,xlwt.Alignment.HORZ_CENTER)
     font = xlwt.Font() # Create the Font
-    font.height = 350
+    font.height = 250
     Style.font = font
     Styles["Style007"] = Style
 
@@ -185,35 +178,37 @@ class MainHandler(webapp2.RequestHandler):
 
   def SetColRowSize(self,WorkSheet):  # 行,列サイズセット
 
-    RowHeight = ["行の高さ",30,30,30,30,30,30,32,30,30,30,60,60,60,30,80,80,20,30]
-    for i in range(1,19):
-      WorkSheet.row(i - 1).height_mismatch = 1
-      WorkSheet.row(i - 1).height = int(RowHeight[i] * 20)
-      WorkSheet.row(i + 17).height_mismatch = 1
-      WorkSheet.row(i + 17).height = int(RowHeight[i] * 20)
+    RowHeight = [10,10,10,10,10,10,12,10,10,10,10,10,10,10,10,10,10,10] # 行の高さ
+    Row = 0
+    for Height in RowHeight:
+      WorkSheet.row(Row).height_mismatch = 1
+      WorkSheet.row(Row).height = int(Height * 60)
+      WorkSheet.row(Row + 17).height_mismatch = 1
+      WorkSheet.row(Row + 17).height = int(Height * 60)
+      Row += 1
 
-    ColWidth = ["列の幅",10,10,4,3,10,10,4,2,2]
-    for i in range(1,10):
-      WorkSheet.col(i - 1).width = int(ColWidth[i] * 400)
-      WorkSheet.col(i + 8).width = int(ColWidth[i] * 400)
+    ColWidth = [2,16,2,15,15,2,10,12,2] # 列の幅
+    Col = 0
+    for Width in ColWidth:
+      WorkSheet.col(Col).width = int(Width * 400)
+      Col += 1
+    return
+
+  def SetKanzyaName(self,WorkSheet,KanzyaName,Styles): # 患者名セット
+
+    for i in range(0,2):
+      RowSpan = i * 18
+      WorkSheet.write_merge(6 + RowSpan,6 + RowSpan ,0,2,KanzyaName,Styles["Style001"])
+#      WorkSheet.write(5,0 + ColSpan,KanzyaName,Styles["Style001"]) # Style)
+      WorkSheet.write(6 + RowSpan,3,u"様",Styles["Style005"])
 
     return
 
-  def SetKanzyaName(self,WorkSheet,RowOffset,KanzyaName,Styles): # 患者名セット
+  def SetKoumokuName(self,WorkSheet,Tuki,Kubun,Styles): # 項目名セット
 
     for i in range(0,2):
       ColSpan = i * 9
-      WorkSheet.write_merge(5 + RowOffset,5+ RowOffset,0 + ColSpan ,1 + ColSpan,KanzyaName,Styles["Style001"])
-#      WorkSheet.write(5 + RowOffset,0 + ColSpan,KanzyaName,Styles["Style001"]) # Style)
-      WorkSheet.write(5 + RowOffset,2 + ColSpan,u"様",Styles["Style001"])
-
-    return
-
-  def SetKoumokuName(self,WorkSheet,RowOffset,Tuki,Kubun,Styles): # 項目名セット
-
-    for i in range(0,2):
-      ColSpan = i * 9
-      WorkSheet.write( 9 + RowOffset,0 + ColSpan,u""   ,Styles["Style002"])
+      WorkSheet.write(9,0 + ColSpan,u""   ,Styles["Style002"])
 
     if   Kubun == 1:
       Title1 = str(Tuki) + u"月分家賃"
@@ -230,17 +225,13 @@ class MainHandler(webapp2.RequestHandler):
 
     for i in range(0,2):
       ColSpan = i * 9
-      WorkSheet.write(10 + RowOffset,0 + ColSpan,Title1,Styles["Style002"])
-      WorkSheet.write(11 + RowOffset,0 + ColSpan,Title2,Styles["Style002"])
-      WorkSheet.write(12 + RowOffset,0 + ColSpan,Title3,Styles["Style002"])
+      WorkSheet.write(10,0 + ColSpan,Title1,Styles["Style002"])
+      WorkSheet.write(11,0 + ColSpan,Title2,Styles["Style002"])
+      WorkSheet.write(12,0 + ColSpan,Title3,Styles["Style002"])
 
     return
   
-  def SetKingaku(self,WorkSheet,RowOffset,Kubun,Yatin,Kyoeki,Kanri,DenkiDai,Styles): # 金額セット
-
-    for i in range(0,2):
-      ColSpan = i * 9
-      WorkSheet.write( 9 + RowOffset,1 + ColSpan,u"金額"   ,Styles["Style003"])
+  def SetKingaku(self,WorkSheet,Kubun,Nissu,Yatin,Kyoeki,Kanri,DenkiDai,Styles): # 金額セット
 
     if Kubun  == 1:
       Kingaku1 = '{:,d}'.format(Yatin)
@@ -255,90 +246,97 @@ class MainHandler(webapp2.RequestHandler):
       Kingaku2 = " "
       Kingaku3 = " "
 
+    if int(Nissu) == 0: # 日数指定なし
+      OutNissu = u"１ヶ月分"
+    else:
+      OutNissu = str(Nissu) + u"日分"
+
+      
     for i in range(0,2):
-      ColSpan = i * 9
-      WorkSheet.write(10 + RowOffset,1 + ColSpan,Kingaku1 ,Styles["Style003"])
-      WorkSheet.write(11 + RowOffset,1 + ColSpan,Kingaku2 ,Styles["Style003"])
-      WorkSheet.write(12 + RowOffset,1 + ColSpan,Kingaku3 ,Styles["Style003"])
+      RowSpan = i * 18
+      WorkSheet.write_merge(11 + RowSpan,11 + RowSpan,2,3,OutNissu,Styles["Style003"])
+      if Kubun != 3:
+        WorkSheet.write_merge(12 + RowSpan,12 + RowSpan,2,3,OutNissu,Styles["Style003"])
+        WorkSheet.write_merge(13 + RowSpan,13 + RowSpan,2,3,OutNissu,Styles["Style003"])
+      else:
+        WorkSheet.write_merge(12 + RowSpan,12 + RowSpan,2,3,"",Styles["Style003"])
+        WorkSheet.write_merge(13 + RowSpan,13 + RowSpan,2,3,"",Styles["Style003"])
+      WorkSheet.write_merge(14 + RowSpan,14 + RowSpan,2,3,"" ,Styles["Style003"])
+
+      WorkSheet.write(11 + RowSpan,4,Kingaku1 ,Styles["Style003"])
+      WorkSheet.write(12 + RowSpan,4,Kingaku2 ,Styles["Style003"])
+      WorkSheet.write(13 + RowSpan,4,Kingaku3 ,Styles["Style003"])
+      WorkSheet.write(14 + RowSpan,4,"" ,Styles["Style003"])
     
     if   Kubun == 1:
 #      Goukei = '{:,d}'.format(Yatin + Kyoeki)
-      Goukei = '{:,d}'.format(Yatin + Kyoeki + Kanri)
+      Goukei = '{:,d}'.format(Yatin + Kyoeki + Kanri) + u"円"
     elif Kubun == 2:
       Goukei = '{:,d}'.format(Kanri)
     else:
-      Goukei = '{:,d}'.format(int(round(DenkiDai,0)))
+      Goukei = '{:,d}'.format(int(round(DenkiDai,0))) + u"円"
 
     for i in range(0,2):
-      ColSpan = i * 9
-#      WorkSheet.write(12 + RowOffset,1 + ColSpan,Goukei ,Styles["Style003"])
-      WorkSheet.write(12 + RowOffset,5 + ColSpan,Goukei   ,Styles["Style003"])
+      RowSpan = i * 18
+      WorkSheet.write_merge(15 + RowSpan,15 + RowSpan,2,4,Goukei + u"　（税込）",Styles["Style003"])
+      WorkSheet.write_merge(13 + RowSpan,15 + RowSpan,7,7,Goukei   ,Styles["Style003"])
 
     return
 
-  def SetTitle(self,WorkSheet,RowOffset,Kubun,Meigi,Styles):  # 固定部分セット
+  def SetTitle(self,WS,Hizuke,Kubun,Meigi,Styles):  # 固定部分セット
 
-    Hizuke =  u"平成" + str(datetime.datetime.now().year - 1988) + u"年" 
-    Hizuke += str(datetime.datetime.now().month) + u"月"
-    Hizuke += str(datetime.datetime.now().day) + u"日"
+    NowHizuke =  u"平成" + str(datetime.datetime.now().year - 1988) + u"年" 
+    NowHizuke += str(datetime.datetime.now().month) + u"月"
+    NowHizuke += str(datetime.datetime.now().day) + u"日"
 
-    WorkSheet.write(1 + RowOffset,0,u"領収書",Styles["Style004"])
-    WorkSheet.write(1 + RowOffset,9,u"領収書（控）",Styles["Style004"])
+    TaisyoHizuke =  u"平成"   + str(int(Hizuke[0:4]) - 1988) + u"年" + Hizuke[5:7] + u"月1日～"
+    TaisyoHizuke += u"　平成" + str(int(Hizuke[0:4]) - 1988) + u"年" + Hizuke[5:7] + u"月"
+    Matubi = monthrange(int(Hizuke[0:4]),int(Hizuke[5:7]))[1] # 末日
+    TaisyoHizuke += str(Matubi) + u"日(" + str(Matubi) + u"日間)"
 
     for i in range(0,2):
-      ColSpan = i * 9
-      WorkSheet.write(0 + RowOffset,5 + ColSpan ,Hizuke,Styles["Style005"])
-      if Meigi == 1:
-        WorkSheet.write(2 + RowOffset,4 + ColSpan,u"　　呉市宮原２丁目５-２４",Styles["Style005"])
-        WorkSheet.write(3 + RowOffset,5 + ColSpan,u"森川　敦子",Styles["Style005"])
-        WorkSheet.write(4 + RowOffset,4 + ColSpan,u"　　　　TEL(0823)24-0706",Styles["Style005"])
-      else:
-        WorkSheet.write(2 + RowOffset,4 + ColSpan,u"　　呉市広白石４丁目７－２２",Styles["Style005"])
-        WorkSheet.write(3 + RowOffset,4 + ColSpan,u"　　　医療法人社団　和恒会",Styles["Style005"])
-        WorkSheet.write(4 + RowOffset,4 + ColSpan,u"　　　　TEL(0823)70-0555",Styles["Style005"])
+      RowSpan = i * 18
+      WS.write(0 + RowSpan,7 ,NowHizuke,Styles["Style005"])
+      WS.write_merge(1 + RowSpan,4 + RowSpan ,7,8,u"領収印",Styles["Style007"])
+      WS.write(3 + RowSpan,4,u"医療法人社団和恒会 さくらんぼ",Styles["Style005"])
+      WS.write(4 + RowSpan,4,u"呉市広白石４丁目１番１２号",Styles["Style005"])
+      WS.write(5 + RowSpan,4,u"  TEL(0823)72-9991",Styles["Style005"])
         
       if Kubun == 1:
-        WorkSheet.write(7 + RowOffset,1 + ColSpan,u"さくらんぼ家賃・共益費" ,Styles["Style006"])
+        if i == 0:
+          WS.write_merge(1,1,1,3,u"さくらんぼ請求領収書" ,Styles["Style006"])
+        else:
+          WS.write_merge(19,19 ,1,3,u"さくらんぼ請求領収書(控)" ,Styles["Style006"])
       elif Kubun == 2:
-        WorkSheet.write(7 + RowOffset,1 + ColSpan,u"さくらんぼ管理費" ,Styles["Style006"])
+        WS.write(7,1,u"さくらんぼ管理費" ,Styles["Style006"])
       else:
-        WorkSheet.write(7 + RowOffset,1 + ColSpan,u"さくらんぼ電気代" ,Styles["Style006"])
+        if i == 0:
+          WS.write_merge(1,1,1,3,u"さくらんぼ電気代" ,Styles["Style006"])
+        else:
+          WS.write_merge(19,19 ,1,3,u"さくらんぼ電気代(控)" ,Styles["Style006"])
 
-      WorkSheet.write(7 + RowOffset,2 + ColSpan,"" ,Styles["Style006"])
-      WorkSheet.write(7 + RowOffset,3 + ColSpan,"" ,Styles["Style006"])
-      WorkSheet.write(7 + RowOffset,4 + ColSpan,"" ,Styles["Style006"])
+      WS.write(8 + RowSpan,1,u"利用内容：外部サービス利用型共同生活援助",Styles["Style005"])
+      WS.write(9 + RowSpan,1,TaisyoHizuke,Styles["Style005"])
+      WS.write(10 + RowSpan,1,u"",Styles["Style002"])
+      WS.write_merge(10 + RowSpan,10 + RowSpan,2,3,u"明細" ,Styles["Style002"])
+      WS.write(10 + RowSpan,4,u"金額",Styles["Style002"])
+      if Kubun != 3:
+        WS.write(11 + RowSpan,1,u"室料",Styles["Style002"])
+        WS.write(12 + RowSpan,1,u"水道光熱費",Styles["Style002"])
+        WS.write(13 + RowSpan,1,u"共用場所維持費",Styles["Style002"])
+      else:
+        WS.write(11 + RowSpan,1,u"電気代",Styles["Style002"])
+        WS.write(12 + RowSpan,1,u"",Styles["Style002"])
+        WS.write(13 + RowSpan,1,u"",Styles["Style002"])
 
-      WorkSheet.write_merge(9 + RowOffset,9+ RowOffset,4 + ColSpan ,5 + ColSpan,u"領収印",Styles["Style007"])
-      WorkSheet.write_merge(10+ RowOffset,11+ RowOffset,4 + ColSpan ,5 + ColSpan," ",Styles["Style007"])
-      WorkSheet.write(12 + RowOffset,4 + ColSpan,u"請求金額"   ,Styles["Style007"])
+      WS.write(14 + RowSpan,1,u"",Styles["Style002"])
+      WS.write(15 + RowSpan,1,u"合計",Styles["Style002"])
 
-      WorkSheet.write_merge(14+RowOffset,14+ RowOffset,0 + ColSpan ,0 + ColSpan,u"備考",Styles["Style007"])
-      WorkSheet.write_merge(14+RowOffset,14+ RowOffset,1 + ColSpan ,6 + ColSpan," ",Styles["Style007"])
+      WS.write_merge(13 + RowSpan,15 + RowSpan,6,6,u"請求金額" ,Styles["Style002"])
+      WS.write(16 + RowSpan,1,u"この領収は再発行しかねますので大切に保管してください。",Styles["Style005"])
 
-      WorkSheet.write(15 + RowOffset,0 + ColSpan,u"　　この領収書の再発行は致しかねますので、大切に保存してください。")
-
-      WorkSheet.write( 9 + RowOffset,2 + ColSpan,u""     ,Styles["Style012"])
-      WorkSheet.write(10 + RowOffset,2 + ColSpan,u"円"   ,Styles["Style012"])
-      WorkSheet.write(11 + RowOffset,2 + ColSpan,u"円"   ,Styles["Style012"])
-      WorkSheet.write(12 + RowOffset,2 + ColSpan,u"円"   ,Styles["Style012"])
-      WorkSheet.write(12 + RowOffset,6 + ColSpan,u"円"   ,Styles["Style012"])
-
-    for i in range(0,16): # ページ切れ目
-      WorkSheet.write(i + RowOffset,8,"" ,Styles["Style008"])
-#      WorkSheet.write(i + RowOffset,17,"" ,Styles["Style008"])
-
-
-    if RowOffset == 0:
-
-      WorkSheet.write_merge(16,16,0 ,16," ",Styles["Style009"])
-
-#      for i in range(0,8): # ページ切れ目
-#        WorkSheet.write(16 + RowOffset,i,"" ,Styles["Style009"])
-#        WorkSheet.write(16 + RowOffset,i + 9,"" ,Styles["Style009"])
-
-#    WorkSheet.write(16 + RowOffset,8,"" ,Styles["Style010"])
-
-#    WorkSheet.write(16 + RowOffset,17,"" ,Styles["Style011"])
+#   # ページ切れ目
+    WS.write(17,0,u"―" * 60 ,Styles["Style006"])
 
     return
 
@@ -370,8 +368,7 @@ class MainHandler(webapp2.RequestHandler):
 
     Alignment      = xlwt.Alignment()
 
-    if Vert != False:
-      Alignment.vert = Vert
+    Alignment.vert = Vert
     if Horz != False:
       Alignment.horz = Horz
 

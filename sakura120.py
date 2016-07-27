@@ -42,7 +42,7 @@ class MainHandler(webapp2.RequestHandler):
 
     WorkBook = xlwt.Workbook()  # 新規Excelブック
 
-    SheetName = [u"家賃",u"管理費",u"電気代"]
+    SheetName = [u"家賃",u"共用場所維持費",u"電気代",u"光熱水費"]
 
     RecYatinMst = MstYatin().GetRec(Nengetu) # 家賃マスタ取得
     WDatMain  =  DatMain()
@@ -126,12 +126,13 @@ class MainHandler(webapp2.RequestHandler):
         Tyousu1 = u"さくらんぼ"
         ymd = Nengetu.split("/")
         if   Kubun == 0:
-          Tyousu2 = ymd[1] + u"月分家賃・共益費"
+          Tyousu2 = ymd[1] + u"月分家賃"
         elif Kubun == 1:
-          Tyousu2 = ymd[1] + u"月分管理費"
-        else:
+          Tyousu2 = ymd[1] + u"月分共用場所維持費"
+        elif Kubun == 2:
           Tyousu2 = ymd[1] + u"月分電気代"
-
+        elif Kubun == 3:
+          Tyousu2 = ymd[1] + u"月分水道光熱費"
         Tyousu3 = ""
         if OutRec <= RecCtr:
 #          ID,Kingaku = self.GetData(Nengetu,RecMst[OutRec - 1].Room,Kubun,WDatMain,WDatDenki,RecYatinMst)
@@ -192,10 +193,15 @@ class MainHandler(webapp2.RequestHandler):
 
   def GetData(self,Nengetu,Room,Kubun,WDatMain,WDatDenki,RecYatinMst):  # セルスタイルセット
 
-    Sql =  "SELECT * FROM DatMain"
-    Sql += " Where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
-    Sql += "  And  Room   = " + str(Room)
-
+    if Kubun == 2: # 電気代
+      Sql =  "SELECT * FROM DatDenki"
+      Sql += " Where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
+      Sql += "  And  Room   = " + str(Room)
+    else:
+      Sql =  "SELECT * FROM DatMain"
+      Sql += " Where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
+      Sql += "  And  Room   = " + str(Room)
+      
     SnapDat = db.GqlQuery(Sql)
   
     if SnapDat.count() == 0:
@@ -203,17 +209,30 @@ class MainHandler(webapp2.RequestHandler):
 
     SnapRec = SnapDat.fetch(1)[0]
     ID = SnapRec.KanzyaID
-    if SnapRec.GenkinFlg == 1: # 現金フラグが立ってる人は０円
-      Kingaku = 0
-    elif Kubun == 0:     # 家賃
-      Hozyo,Yatin,Kyoeki,Kanri =  WDatMain.GetKingaku(Nengetu,SnapRec,RecYatinMst)
-      Kingaku = Yatin + Kyoeki
+    if Kubun == 0:     # 家賃
+      if SnapRec.GenkinFlg == 1: # 現金フラグが立ってる人は０円
+        Kingaku = 0
+      else:
+        Hozyo,Yatin,Kyoeki,Kanri =  WDatMain.GetKingaku(Nengetu,SnapRec,RecYatinMst)
+#        Kingaku = Yatin + Kyoeki - Hozyo
+        Kingaku = Yatin - Hozyo
     elif Kubun == 1:   # 管理費
-      Hozyo,Yatin,Kyoeki,Kanri =  WDatMain.GetKingaku(Nengetu,SnapRec,RecYatinMst)
-      Kingaku = Kanri
-    else:              # 電気代
-      KeisanKubun,Comment,Kingaku = WDatDenki.GetKingaku(Nengetu,SnapRec.Room,RecYatinMst.DenkiTanka)
+      if SnapRec.GenkinFlg == 1: # 現金フラグが立ってる人は０円
+        Kingaku = 0
+      else:
+        Hozyo,Yatin,Kyoeki,Kanri =  WDatMain.GetKingaku(Nengetu,SnapRec,RecYatinMst)
+        Kingaku = Kanri
+    elif Kubun == 2:   # 電気代
+      Siyoryo = WDatDenki.GetSiyoryo(SnapRec)
+      KeisanKubun,Comment,Kingaku = WDatDenki.GetKingaku2(Nengetu,SnapRec.Room,RecYatinMst.DenkiTanka,Siyoryo)
       Kingaku = int(round(Kingaku,0))
+    else:  # 水道光熱費
+      if SnapRec.GenkinFlg == 1: # 現金フラグが立ってる人は０円
+        Kingaku = 0
+      else:
+        Hozyo,Yatin,Kyoeki,Kanri =  WDatMain.GetKingaku(Nengetu,SnapRec,RecYatinMst)
+#        Kingaku = Yatin + Kyoeki - Hozyo
+        Kingaku = Kyoeki
 
     return (ID,Kingaku)
 

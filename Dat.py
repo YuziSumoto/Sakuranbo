@@ -82,7 +82,7 @@ class DatDenki(db.Model):
     sql += "  and  Room = " + Room
 
     Snap = db.GqlQuery(sql)
-    for Rec in SnapData.fetch(Snap.count()):
+    for Rec in Snap.fetch(Snap.count()):
       Rec.delete()
 
     return
@@ -163,3 +163,42 @@ class DatDenki(db.Model):
     Kingaku = (Tougetu - Zengetu) * DenkiTanka
 
     return (KeisanKubun,Comment,Kingaku)
+
+  def GetKingaku2(self,Nengetu,Room,DenkiTanka,Siyoryo): # 2016/06以降
+
+    Sql =  "SELECT * FROM DatDenki"
+    Sql += " Where Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
+    Sql += "  And  Room  = " + str(Room)
+    SnapDat = db.GqlQuery(Sql)
+
+    Kingaku = 0
+
+    if SnapDat.count() == 0:
+      KeisanKubun = 0
+      Comment     = ""
+      Zengetu  = 0
+      return (KeisanKubun,Comment,Kingaku)
+
+    RecDat = SnapDat.fetch(1)[0]
+
+    KeisanKubun = RecDat.KeisanKubun
+    Comment     = RecDat.Comment
+    if KeisanKubun == 1:
+      Kingaku =  RecDat.Kingaku
+    else:
+      Kingaku = Siyoryo * DenkiTanka
+
+    return (KeisanKubun,Comment,Kingaku)
+
+  def GetSiyoryo(self,Rec): # 2016/06以降
+
+    Siyoryo = 0
+    for Ctr in range(1,3): # ２回ループ
+      if getattr(Rec,"SMeter" + str(Ctr),None) == None: # 未指定？
+        pass
+      elif getattr(Rec,"EMeter" + str(Ctr),None) == None:
+        pass
+      else:
+        Siyoryo += float(getattr(Rec,"EMeter" + str(Ctr))) - float(getattr(Rec,"SMeter" + str(Ctr)))
+
+    return Siyoryo

@@ -34,14 +34,17 @@ class MainHandler(webapp2.RequestHandler):
       self.redirect(users.create_logout_url(self.request.uri))
       return
 
-    WorkBook =  self.TableDataSet(self.request.get('LstDate'))
-
+    if  self.request.get('PG') == "":
+      WorkBook =  self.TableDataSet(self.request.get('LstDate'),0)
+    else:
+      WorkBook =  self.TableDataSet(self.request.get('LstDate'),1)
+      
     self.response.headers['Content-Type'] = 'application/ms-excel'
     self.response.headers['Content-Transfer-Encoding'] = 'Binary'
     self.response.headers['Content-disposition'] = 'attachment; filename="sakura115.xls"'
     WorkBook.save(self.response.out)
 
-  def TableDataSet(self,Nengetu):
+  def TableDataSet(self,Nengetu,Mode): # Mode 0:2016/04まで  1:2016/05から
 
     WorkBook = xlwt.Workbook()  # 新規Excelブック
 
@@ -50,15 +53,22 @@ class MainHandler(webapp2.RequestHandler):
     self.SetColRowSize(WorkSheet) # 行,列サイズセット
 
     RowOffset = 0
-    self.SetTitle(WorkSheet)      # 固定部分セット
+    self.SetTitle(WorkSheet,Mode)      # 固定部分セット
 
     WorkSheet.write(0,1 ,Nengetu.replace("/",u"年") + u"月分電気代")
 
     RecYatinMst = MstYatin().GetRec(Nengetu) # 家賃マスタ取得
 
-    Sql =  "SELECT * FROM MstRoom"
-    Sql += "  Where Room >= 100" 
-    Sql += "  Order by Room"
+    if Mode == 0:
+      Sql =  "SELECT * FROM MstRoom"
+      Sql += "  Where Room >= 100" 
+      Sql += "  Order by Room"
+    else:
+      Sql =  "SELECT * FROM DatDenki"  # 家賃データ取得
+      Sql += " Where Room <= 100" # 2016/05/17 Add
+      Sql += "  And  Hizuke = Date('" + Nengetu.replace("/","-") + "-01')"
+      Sql += "  Order by Room"
+
     SnapDat = db.GqlQuery(Sql)
     RecDat = SnapDat.fetch(100) # データ取得
     OutRow = 2 # 出力行
@@ -70,8 +80,11 @@ class MainHandler(webapp2.RequestHandler):
       OutRow += 1
 
       WorkSheet.write(OutRow,0,str(Rec.Room),Style)
-      Goukei += self.DataSet(WorkSheet,OutRow,Nengetu,str(Rec.Room),RecYatinMst.DenkiTanka)
-
+      if Mode ==0:
+        Goukei += self.DataSet(WorkSheet,OutRow,Nengetu,str(Rec.Room),RecYatinMst.DenkiTanka)
+      else:
+        Goukei += self.DataSet2(WorkSheet,OutRow,Nengetu,Rec,RecYatinMst.DenkiTanka)
+      
     OutRow += 2
     Style = self.SetStyle("THIN","THIN","THIN","THIN",False,xlwt.Alignment.HORZ_CENTER)
     WorkSheet.write(OutRow,8,u"当月電気代",Style)
@@ -147,6 +160,48 @@ class MainHandler(webapp2.RequestHandler):
 
     return int(round(Kingaku,0))
 
+  def DataSet2(self,WorkSheet,OutRow,Nengetu,Rec,DenkiTanka):  # データ取得
+
+    WDatDenki = DatDenki()
+
+    Style = self.SetStyle("THIN","THIN","THIN","THIN",False,False)
+
+    Siyoryo = WDatDenki.GetSiyoryo(Rec)
+    KeisanKubun,Comment,Kingaku = WDatDenki.GetKingaku2(Nengetu,Rec.Room,DenkiTanka,Siyoryo)
+
+    WorkSheet.write(OutRow,2,Rec.KanzyaName,Style) # 患者名
+    Style = self.SetStyle("THIN","THIN","THIN","THIN",False,xlwt.Alignment.HORZ_RIGHT)
+    WorkSheet.write(OutRow,1,str(Rec.KanzyaID),Style)
+
+    if Comment == None:
+      WorkSheet.write(OutRow,3,"",Style)
+    else:
+      WorkSheet.write(OutRow,3,Comment,Style)
+
+    Style = self.SetStyle("THIN","THIN","THIN","THIN",False,xlwt.Alignment.HORZ_RIGHT)
+
+    OutStr = str(getattr(Rec,"SMeter1",""))
+    OutStr += u"～"
+    OutStr += str(getattr(Rec,"EMeter1",""))
+    WorkSheet.write(OutRow,4,OutStr,Style)
+
+    OutStr = str(getattr(Rec,"SMeter2",""))
+    OutStr += u"～"
+    OutStr += str(getattr(Rec,"EMeter2",""))
+    WorkSheet.write(OutRow,5,OutStr,Style)
+
+    WorkSheet.write(OutRow,6,('%5.2f' % Siyoryo),Style)
+
+    if KeisanKubun == 1:
+      WKingaku = u"手入力"
+    else:
+      WKingaku = u"￥" + ('%5.2f' % Kingaku)
+    WorkSheet.write(OutRow,7,WKingaku,Style)
+
+    WorkSheet.write(OutRow,8,u"￥" + "{:,d}".format(int(round(Kingaku,0))),Style)
+
+    return int(round(Kingaku,0))
+
   def SetPrintParam(self,WorkSheet): # 用紙サイズ・余白設定
 #    WorkSheet.set_paper_size_code(13) # B5
     WorkSheet.set_paper_size_code(9) # A4
@@ -169,7 +224,7 @@ class MainHandler(webapp2.RequestHandler):
 
     return
 
-  def SetTitle(self,WorkSheet):  # 固定部分セット
+  def SetTitle(self,WorkSheet,Mode):  # 固定部分セット
 
     Hizuke =  u"平成" + str(datetime.datetime.now().year - 1988) + u"年" 
     Hizuke += str(datetime.datetime.now().month) + u"月"
@@ -182,8 +237,13 @@ class MainHandler(webapp2.RequestHandler):
     WorkSheet.write(2,2,u"患者名",Style)
     WorkSheet.write(2,1,u"患者ID",Style)
     WorkSheet.write(2,3,u"コメント",Style)
-    WorkSheet.write(2,4,u"前月メータ",Style)
-    WorkSheet.write(2,5,u"今月メータ",Style)
+    if Mode == 0:
+      WorkSheet.write(2,4,u"前月メータ",Style)
+      WorkSheet.write(2,5,u"今月メータ",Style)
+    else:
+      WorkSheet.write(2,4,u"メータ1",Style)
+      WorkSheet.write(2,5,u"メータ2",Style)
+      
     WorkSheet.write(2,6,u"使用料",Style)
     WorkSheet.write(2,7,u"計算額",Style)
     WorkSheet.write(2,8,u"請求額",Style)

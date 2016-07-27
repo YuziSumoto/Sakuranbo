@@ -36,7 +36,7 @@ class MainHandler(webapp2.RequestHandler):
     Rec = self.DataGet(Nengetu,Room,0)
 
     template_values = {'Rec'   :Rec,
-                       'StrKanzya'   : self.SetKanzya(Rec['KanzyaID']),
+                       'StrKanzya'   : self.SetKanzya(Rec.KanzyaID),
                        'LblMsg': LblMsg}
     path = os.path.join(os.path.dirname(__file__), 'sakura026.html')
     self.response.out.write(template.render(path, template_values))
@@ -56,30 +56,25 @@ class MainHandler(webapp2.RequestHandler):
       return
 
     LblMsg = ""
-
+    LblMsg = self.request.get('KanzyaID')
+    
     if self.request.get('BtnKettei')  != '':  # 決定
       ErrFlg,LblMsg = self.ChkInput() # 入力チェック
       if ErrFlg == False: # エラー無し
         DatDenki().DelRec(Nengetu,Room)
         self.DataAdd(Nengetu,Room)
-        self.redirect("/sakura020/?Nengetu=" + Nengetu )
+        self.redirect("/sakura021/?Nengetu=" + Nengetu )
         return
 
     Rec = {}
     ParaNames = self.request.arguments()
     for ParaName in ParaNames:
       Rec[ParaName]    = self.request.get(ParaName)
-    Rec['TxtRoom']      = Room
-    if Rec.has_key('OptKeisan') == False:
-      Rec['OptKeisan0'] = "checked"
-    elif Rec['OptKeisan']   == "0":
-      Rec['OptKeisan0'] = "checked"
-    else:
-      Rec['OptKeisan1'] = "checked"
-
+    Rec['Room']      = Room
     Rec = self.DataGet(Nengetu,Room,1)
 
     template_values = {'Rec'   :Rec,
+                       'StrKanzya'   : self.SetKanzya(Rec.KanzyaID),
                        'LblMsg': LblMsg}
     path = os.path.join(os.path.dirname(__file__), 'sakura026.html')
     self.response.out.write(template.render(path, template_values))
@@ -92,9 +87,9 @@ class MainHandler(webapp2.RequestHandler):
 
     Snap = db.GqlQuery(sql)
     if Snap.count() == 0:
-      Rec = {}
-      Rec["Room"]     = Room
-      Rec["KanzyaID"] = None
+      Rec = DatDenki()
+      Rec.Room     = int(Room)
+      Rec.KanzyaID = None
     else:
       Rec = Snap.fetch(1)[0]
 
@@ -119,14 +114,21 @@ class MainHandler(webapp2.RequestHandler):
     DynaData = DatDenki()
     DynaData.Hizuke = datetime.datetime.strptime(Hizuke + "/01", '%Y/%m/%d')
     DynaData.Room         = int(Room)
-    KanzyaID =  self.request.get('KanzyaID')
-    if  self.request.get('Meter') != "":
-      DynaData.Meter        = float(self.request.get('Meter'))
+    DynaData.KanzyaID   =  int(self.request.get('KanzyaID'))
+    DynaData.KanzyaName =  MstKanzya().GetKanzyaName(self.request.get('KanzyaID'))
+    if  self.request.get('SMeter1') != "":
+      DynaData.SMeter1        = float(self.request.get('SMeter1'))
+    if  self.request.get('SMeter2') != "":
+      DynaData.SMeter2        = float(self.request.get('SMeter2'))
+    if  self.request.get('EMeter1') != "":
+      DynaData.EMeter1        = float(self.request.get('EMeter1'))
+    if  self.request.get('EMeter2') != "":
+      DynaData.EMeter2        = float(self.request.get('EMeter2'))
  
-    DynaData.KeisanKubun  = int(self.request.get('OptKeisan'))
-    DynaData.Comment      = self.request.get('TxtComment')
-    if  self.request.get('TxtKingaku') != "":
-      DynaData.Kingaku      = int(self.request.get('TxtKingaku'))
+    DynaData.KeisanKubun  = int(self.request.get('KeisanKubun'))
+    DynaData.Comment      = self.request.get('Comment')
+    if  self.request.get('Kingaku') != "":
+      DynaData.Kingaku      = int(self.request.get('Kingaku'))
 
     DynaData.put()
 

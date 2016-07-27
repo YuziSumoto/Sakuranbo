@@ -32,6 +32,7 @@ class MainHandler(webapp2.RequestHandler):
 
     PrintParam = "?LstDate="
     PrintParam += Nengetu
+    PrintParam += "&PG=sakura021"
 
     template_values = {'strTable':strTable,
                        'PrintParam' : PrintParam,
@@ -84,7 +85,7 @@ class MainHandler(webapp2.RequestHandler):
       retStr += "</TD>"
       retStr += self.DataSet(Nengetu,str(Ctr),RecYatinMst)
       retStr += "<TD>"    # 削除ボタン
-      retStr += "<input type='submit' value = '削除'"
+      retStr += u"<input type='submit' value = '削除'"
       retStr += " name='BtnDel" + str(Ctr) + "'>"
       retStr += "</TD>"
       retStr += "</TR>"
@@ -108,40 +109,49 @@ class MainHandler(webapp2.RequestHandler):
       for i in range(1,3):
         retStr += "<TD>&nbsp</TD>" # ＩＤ
     else:
-      Rec = SnapMst.fetch(1)[0]
-      retStr += "<TD>"  + str(RecMst.KanzyaID)    + "</TD>" # ＩＤ
+      Rec = Snap.fetch(1)[0]
+      retStr += "<TD>"  + str(Rec.KanzyaID)    + "</TD>" # ＩＤ
       if Rec.KanzyaName == None:
         retStr += "<TD>&nbsp</TD>" # 氏名
       else:
-        retStr += "<TD>"  + RecMst.KanzyaName + "</TD>" # 氏名
+        retStr += "<TD>"  + Rec.KanzyaName + "</TD>" # 氏名
 
     Siyoryo = 0
+    SMeter = 0
+    EMeter = 0
     for Ctr in range(1,3): # ２回ループ
       retStr += "<TD align='right'>" # 当月メータ
       if getattr(Rec,"SMeter" + str(Ctr),None) == None: # 未指定？
+        SMeter = 0
         retStr += "&nbsp"
       else:
+        SMeter = getattr(Rec,"SMeter" + str(Ctr))
         retStr += ('%5.2f' % getattr(Rec,"SMeter" + str(Ctr)))
       retStr += "</TD>" 
       retStr += "<TD align='right'>" # 前月メータ
       if getattr(Rec,"EMeter" + str(Ctr),None) == None:
+        EMeter = 0
         retStr += "&nbsp"
       else:
+        EMeter = getattr(Rec,"EMeter" + str(Ctr))
         retStr += ('%5.2f' % getattr(Rec,"EMeter" + str(Ctr)))
       retStr += "</TD>"
+      if SMeter != 0 and EMeter != 0:
+        Siyoryo += EMeter - SMeter
+
         
     retStr += "<TD align='right'>" # 使用量
-    if getattr(Rec,"EMeter" + str(Ctr),None) == None: # None
+    if Siyoryo == 0: # None
       retStr += "&nbsp"
     else:
-      retStr += ('%5.2f' % getattr(Rec,"EMeter" + str(Ctr)))
+      retStr += ('%5.2f' % Siyoryo)
     retStr += "</TD>"
 
-    KeisanKubun,Comment,Kingaku = WDatDenki.GetKingaku(Nengetu,Room,RecYatinMst.DenkiTanka)
+    KeisanKubun,Comment,Kingaku = WDatDenki.GetKingaku2(Nengetu,Room,RecYatinMst.DenkiTanka,Siyoryo)
 
     retStr += "<TD align='right'>" # 計算額
     if KeisanKubun == 1:
-      retStr += "手入力"
+      retStr += u"手入力"
     else:
       retStr += "\\"  + ('%5.2f' % Kingaku)
     retStr += "</TD>"
@@ -150,11 +160,16 @@ class MainHandler(webapp2.RequestHandler):
     if Comment == None:
       retStr += "&nbsp"
     else:
-      retStr += Comment.encode('utf-8')
+      retStr += Comment
 
     retStr += "</TD>"
 
-    retStr += "<TD align='right'>\\"  + str(int(round(Kingaku,0))) + "</TD>"
+    retStr += "<TD align='right'>\\"
+    if Kingaku != None:
+      retStr += str(int(round(Kingaku,0)))
+    else:
+      retStr += "None"
+    retStr += "</TD>"
 
     return retStr
 
@@ -165,7 +180,7 @@ class MainHandler(webapp2.RequestHandler):
     Sql += " And   Room = " + Room
 
     SnapData = db.GqlQuery(Sql)
-    results = SnapData.fetch(1)
+    results = SnapData.fetch(SnapData.count())
     for result in results:
       result.delete()
 

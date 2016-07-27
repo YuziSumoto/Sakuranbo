@@ -12,6 +12,11 @@ indexes:
 
 - kind: DatDenki
   properties:
+  - name: Hizuke
+  - name: Room
+
+- kind: DatDenki
+  properties:
   - name: Room
   - name: Hizuke
 

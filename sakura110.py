@@ -81,10 +81,10 @@ class MainHandler(webapp2.RequestHandler):
     font = xlwt.Font() # Create the Font
     font.height = 200
     Style.font = font
-    WorkSheet.write(OutRow,4,u"家賃+共益費",Style)
+    WorkSheet.write(OutRow,4,u"家賃+水道光熱費",Style)
     WorkSheet.write(OutRow,6,u"当月家賃",Style)
-    WorkSheet.write(OutRow,7,u"当月共益費",Style)
-    WorkSheet.write(OutRow,8,u"当月管理費",Style)
+    WorkSheet.write(OutRow,7,u"当月水道光熱費",Style)
+    WorkSheet.write(OutRow,8,u"当月共用場所維持費",Style)
     OutRow += 1
     Style = self.SetStyle(False,False,False,False,False,xlwt.Alignment.HORZ_RIGHT)
     font = xlwt.Font() # Create the Font
@@ -246,8 +246,8 @@ class MainHandler(webapp2.RequestHandler):
     WorkSheet.write(2,4,u"状況",Style)
     WorkSheet.write(2,5,u"日数",Style)
     WorkSheet.write(2,6,u"家賃",Style)
-    WorkSheet.write(2,7,u"共益費",Style)
-    WorkSheet.write(2,8,u"管理費",Style)
+    WorkSheet.write(2,7,u"水道光熱費",Style)
+    WorkSheet.write(2,8,u"共用場所維持費",Style)
     WorkSheet.write(2,9,u"現金",Style)
 
     return
