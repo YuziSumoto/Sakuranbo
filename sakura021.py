@@ -52,6 +52,9 @@ class MainHandler(webapp2.RequestHandler):
       return
     Nengetu = self.request.cookies.get('Nengetu', '')
 
+    if self.request.get('BtnFukusya')  != '': # 前月複写
+      self.Fukusya(Nengetu)
+
     if self.request.get('BtnSAKURA026')  != '':
       self.redirect("/sakura026/?Nengetu=" + Nengetu + "&Room=" + self.request.get('BtnSAKURA026') )
       return
@@ -172,6 +175,41 @@ class MainHandler(webapp2.RequestHandler):
     retStr += "</TD>"
 
     return retStr
+
+#  前月複写
+  def Fukusya(self,Nengetu):
+
+    Zengetu = datetime.datetime.strptime(Nengetu + "/01", '%Y/%m/%d') # 当月１日
+    Zengetu -= datetime.timedelta(days=1) # 前月末日
+    Zengetu = Zengetu.strftime('%Y/%m')
+
+    Sql =  "SELECT * FROM DatDenki"  # 今月分削除
+    Sql += " Where Hizuke = Date('" +Nengetu.replace("/","-") + "-01')"
+    SnapData = db.GqlQuery(Sql)
+    for result in SnapData.fetch(SnapData.count()):
+      result.delete()
+
+    Sql =  "SELECT * FROM DatDenki"
+    Sql += " Where Hizuke = Date('" + Zengetu.replace("/","-") + "-01')"
+
+    SnapMst = db.GqlQuery(Sql)
+    for Rec in SnapMst.fetch(SnapMst.count()):
+      DynaData = DatDenki()
+      DynaData.Hizuke = datetime.datetime.strptime(Nengetu + '/01', '%Y/%m/%d')
+      DynaData.Room        = Rec.Room
+      DynaData.KanzyaID    = Rec.KanzyaID
+      DynaData.KanzyaName  = Rec.KanzyaName
+      DynaData.Meter       = Rec.Meter
+      DynaData.SMeter1     = Rec.SMeter1
+      DynaData.EMeter1     = Rec.EMeter1
+      DynaData.SMeter2     = Rec.SMeter2
+      DynaData.EMeter2     = Rec.EMeter2
+      DynaData.KeisanKubun = Rec.KeisanKubun
+      DynaData.Comment     = Rec.Comment
+      DynaData.Kingaku     = Rec.Kingaku
+      DynaData.put()
+
+    return
 
   def DataDel(self,Nengetu,Room):
   

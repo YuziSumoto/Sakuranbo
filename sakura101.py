@@ -93,7 +93,7 @@ class MainHandler(webapp2.RequestHandler):
         KeisanKubun,Comment,DenkiDai = WDatDenki.GetKingaku2(Nengetu,RecDat.Room,RecYatinMst.DenkiTanka,Siyoryo)
 
       self.SetKanzyaName(WorkSheet,RecDat.KanzyaName,Styles)
-      self.SetKingaku(WorkSheet,Kubun,Nissu,Yatin,Kyoeki,Kanri,DenkiDai,Styles)
+      self.SetKingaku(WorkSheet,Kubun,Nengetu,Nissu,Yatin,Kyoeki,Kanri,DenkiDai,Styles)
 
  
     return  WorkBook
@@ -231,7 +231,7 @@ class MainHandler(webapp2.RequestHandler):
 
     return
   
-  def SetKingaku(self,WorkSheet,Kubun,Nissu,Yatin,Kyoeki,Kanri,DenkiDai,Styles): # 金額セット
+  def SetKingaku(self,WorkSheet,Kubun,Hizuke,Nissu,Yatin,Kyoeki,Kanri,DenkiDai,Styles): # 金額セット
 
     if Kubun  == 1:
       Kingaku1 = '{:,d}'.format(Yatin)
@@ -247,10 +247,8 @@ class MainHandler(webapp2.RequestHandler):
       Kingaku3 = " "
 
     if int(Nissu) == 0: # 日数指定なし
-      OutNissu = u"１ヶ月分"
-    else:
-      OutNissu = str(Nissu) + u"日分"
-
+      Nissu = monthrange(int(Hizuke[0:4]),int(Hizuke[5:7]))[1] # 末日
+    OutNissu = str(Nissu) + u"日分"
       
     for i in range(0,2):
       RowSpan = i * 18
@@ -307,15 +305,17 @@ class MainHandler(webapp2.RequestHandler):
           WS.write_merge(1,1,1,3,u"さくらんぼ請求領収書" ,Styles["Style006"])
         else:
           WS.write_merge(19,19 ,1,3,u"さくらんぼ請求領収書(控)" ,Styles["Style006"])
+        WS.write(8 + RowSpan,1,u"利用内容：外部サービス利用型共同生活援助",Styles["Style005"])
       elif Kubun == 2:
         WS.write(7,1,u"さくらんぼ管理費" ,Styles["Style006"])
+        WS.write(8 + RowSpan,1,u"利用内容：外部サービス利用型共同生活援助",Styles["Style005"])
       else:
         if i == 0:
-          WS.write_merge(1,1,1,3,u"さくらんぼ電気代" ,Styles["Style006"])
+          WS.write_merge(1,1,1,3,u"さくらんぼ請求領収書" ,Styles["Style006"])
         else:
-          WS.write_merge(19,19 ,1,3,u"さくらんぼ電気代(控)" ,Styles["Style006"])
+          WS.write_merge(19,19 ,1,3,u"さくらんぼ請求領収書(控)" ,Styles["Style006"])
+        WS.write(8 + RowSpan,1,u"利用内容：さくらんぼ個室電気",Styles["Style005"])
 
-      WS.write(8 + RowSpan,1,u"利用内容：外部サービス利用型共同生活援助",Styles["Style005"])
       WS.write(9 + RowSpan,1,TaisyoHizuke,Styles["Style005"])
       WS.write(10 + RowSpan,1,u"",Styles["Style002"])
       WS.write_merge(10 + RowSpan,10 + RowSpan,2,3,u"明細" ,Styles["Style002"])
@@ -336,7 +336,7 @@ class MainHandler(webapp2.RequestHandler):
       WS.write(16 + RowSpan,1,u"この領収は再発行しかねますので大切に保管してください。",Styles["Style005"])
 
 #   # ページ切れ目
-    WS.write(17,0,u"―" * 60 ,Styles["Style006"])
+#    WS.write(17,0,u"―" * 60 ,Styles["Style006"])
 
     return
 

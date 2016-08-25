@@ -215,7 +215,7 @@ class MainHandler(webapp2.RequestHandler):
       else:
         Hozyo,Yatin,Kyoeki,Kanri =  WDatMain.GetKingaku(Nengetu,SnapRec,RecYatinMst)
 #        Kingaku = Yatin + Kyoeki - Hozyo
-        Kingaku = Yatin - Hozyo
+        Kingaku = Yatin # - Hozyo
     elif Kubun == 1:   # 管理費
       if SnapRec.GenkinFlg == 1: # 現金フラグが立ってる人は０円
         Kingaku = 0
