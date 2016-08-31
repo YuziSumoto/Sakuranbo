@@ -17,6 +17,7 @@ class DatMain(db.Model):
   GenkinFlg       = db.IntegerProperty()                    # 現金フラグ
   Hozyo           = db.IntegerProperty()                    # 家賃補助フラグ 20160510 0:無し 1:有り(規定値)
   Biko            = db.StringProperty(multiline=False)      # 備考
+  Yatin           = db.IntegerProperty()                    # 家賃  （手入力 2016/08/30
   Kyoeki          = db.IntegerProperty()                    # 共益金（手入力 2015/10/05
   Kanri           = db.IntegerProperty()                    # 管理費（手入力 2015/10/05
 
@@ -42,7 +43,7 @@ class DatMain(db.Model):
       Kyoeki = 0 # RecMst.KyoekiDay * RecDat.Nissu 2015/10/05 入院中退所は共益費０
       Kanri  = 0 # RecMst.KanriDay  * RecDat.Nissu 2015/10/05 入院中退所は共益費０
     elif RecDat.IOKubun == 3:  # 共益手入力
-      Yatin  = RecMst.YatinDay  * RecDat.Nissu
+      Yatin  = RecDat.Yatin   # 2016/08/30 家賃手入力対応
       Kyoeki = RecDat.Kyoeki  # 2015/10/05 共益費手入力対応
       Kanri  = RecDat.Kanri   # 2015/10/05 共益費手入力対応
     else: # 入退所

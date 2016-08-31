@@ -198,7 +198,6 @@ class MainHandler(webapp2.RequestHandler):
       Rec['CmbKanzya']    = result.KanzyaID
       Rec['CmbNyutaiin']  = result.IOKubun
       Rec['TxtZyokyo']    = result.Zyokyo
-      Rec['TxtYatin']     = 0
       Rec['Nissu']        = result.Nissu
       Rec['NyuinNissu']   = result.NyuinNissu
       Rec['TaikenNissu']  = result.TaikenNissu
@@ -207,6 +206,8 @@ class MainHandler(webapp2.RequestHandler):
 
       Rec['Hozyo']        = result.Hozyo # 2016/05/13
 
+      if result.Yatin != None:
+        Rec['TxtYatin']     = result.Yatin
       if result.Kyoeki != None:
         Rec['TxtKyoeki']    = result.Kyoeki # 0  20151005
       if result.Kanri != None:
@@ -248,8 +249,9 @@ class MainHandler(webapp2.RequestHandler):
     else:
       DynaData.Hozyo     = 0
  
-    DynaData.Kyoeki   = int(self.request.get('TxtKyoeki'))    # 2015/10/05
-    DynaData.Kanri        = int(self.request.get('TxtKanri')) # 2015/10/05
+    DynaData.Yatin    = int(self.request.get('TxtYatin'))  # 2016/08/30
+    DynaData.Kyoeki   = int(self.request.get('TxtKyoeki')) # 2015/10/05
+    DynaData.Kanri    = int(self.request.get('TxtKanri'))  # 2015/10/05
 
     DynaData.put()
 
