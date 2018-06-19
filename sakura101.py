@@ -253,11 +253,11 @@ class MainHandler(webapp2.RequestHandler):
       else:
         ZengetuNen = int(Hizuke[0:4]) # 当年
         Zengetu = int(Hizuke[5:7]) - 1  # 前月
-      if Kubun != 3: # 電気代以外月末締め
+#      if Kubun != 3: # 電気代以外月末締め
         Nissu = monthrange(int(Hizuke[0:4]),int(Hizuke[5:7]))[1] # 末日
-      else:  # 電気代は21日締め
-        Nissu = monthrange(ZengetuNen,Zengetu)[1] - 21 # 前月日数 - 21
-        Nissu += 21 # 当月日数を足す
+#      else:  # 電気代は21日締め
+#        Nissu = monthrange(ZengetuNen,Zengetu)[1] - 21 # 前月日数 - 21
+#        Nissu += 21 # 当月日数を足す
     OutNissu = str(Nissu) + u"日分"
       
     for i in range(0,2):
@@ -295,7 +295,8 @@ class MainHandler(webapp2.RequestHandler):
 
     NowHizuke =  u"平成" + str(datetime.datetime.now().year - 1988) + u"年" 
     NowHizuke += str(datetime.datetime.now().month) + u"月"
-    NowHizuke += str(datetime.datetime.now().day) + u"日"
+#    NowHizuke += str(datetime.datetime.now().day) + u"日"  # 領収書日付は１０日固定との事 2017/09/11
+    NowHizuke += u"10日"
     if int(Hizuke[5:7])== 1: # 1月?
       ZengetuNen = int(Hizuke[0:4]) -1 # 昨年
       Zengetu = 12 # 12月
@@ -303,17 +304,17 @@ class MainHandler(webapp2.RequestHandler):
       ZengetuNen = int(Hizuke[0:4]) # 当年
       Zengetu = int(Hizuke[5:7]) - 1  # 前月
 
-    if Kubun != 3: # 電気代以外は末日
-      TaisyoHizuke =  u"平成"   + str(int(Hizuke[0:4]) - 1988) + u"年" + Hizuke[5:7] + u"月01日～"
-      TaisyoHizuke += u"　平成" + str(int(Hizuke[0:4]) - 1988) + u"年" + Hizuke[5:7] + u"月"
-      Matubi = monthrange(int(Hizuke[0:4]),int(Hizuke[5:7]))[1] # 前月日数 - 21
-      TaisyoHizuke += str(Matubi) + u"日("+ str(Matubi) + u"日間)"
-    else:
-      TaisyoHizuke =  u"平成"   + str(ZengetuNen - 1988) + u"年" + str(Zengetu) + u"月22日～"
-      TaisyoHizuke += u"　平成" + str(int(Hizuke[0:4]) - 1988) + u"年" + Hizuke[5:7] + u"月21日"
-      Matubi = monthrange(ZengetuNen,Zengetu)[1] - 21 # 前月日数 - 21
-      Matubi += 21 # 当月日数を足す
-      TaisyoHizuke += u"(" + str(Matubi) + u"日間)"
+#    if Kubun != 3: # 電気代以外は末日 # 電気代も末尾に  2017/09/11
+    TaisyoHizuke =  u"平成"   + str(int(Hizuke[0:4]) - 1988) + u"年" + Hizuke[5:7] + u"月01日～"
+    TaisyoHizuke += u"　平成" + str(int(Hizuke[0:4]) - 1988) + u"年" + Hizuke[5:7] + u"月"
+    Matubi = monthrange(int(Hizuke[0:4]),int(Hizuke[5:7]))[1] # 前月日数 - 21
+    TaisyoHizuke += str(Matubi) + u"日("+ str(Matubi) + u"日間)"
+#    else:
+#      TaisyoHizuke =  u"平成"   + str(ZengetuNen - 1988) + u"年" + str(Zengetu) + u"月22日～"
+#      TaisyoHizuke += u"　平成" + str(int(Hizuke[0:4]) - 1988) + u"年" + Hizuke[5:7] + u"月21日"
+#      Matubi = monthrange(ZengetuNen,Zengetu)[1] - 21 # 前月日数 - 21
+#      Matubi += 21 # 当月日数を足す
+#      TaisyoHizuke += u"(" + str(Matubi) + u"日間)"
 
     for i in range(0,2):
       RowSpan = i * 18
