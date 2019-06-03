@@ -141,7 +141,7 @@ class MainHandler(webapp2.RequestHandler):
       retStr += "<TD>"  + Rec.Biko        + "</TD>" # 備考
       retStr += "<TD>"
       if  Rec.GenkinFlg == 1:
-        retStr += "○"
+        retStr += u"○"
       retStr += "</TD>" # 現金フラグ
 
     return retStr
