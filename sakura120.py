@@ -53,7 +53,7 @@ class MainHandler(webapp2.RequestHandler):
 
     self.SetColSize(WorkSheet)        # 行,列サイズセット
 
-    for i in range(0,2):
+    for i in range(0,1):
       RowOffset = i * 40
       self.SetRowSize(WorkSheet,RowOffset) # 行,列サイズセット
       self.SetTitle(WorkSheet,RowOffset)   # 固定部分セット
@@ -107,7 +107,7 @@ class MainHandler(webapp2.RequestHandler):
 
     Style5 = self.SetStyle(False,True,True,True,xlwt.Alignment.VERT_CENTER,xlwt.Alignment.HORZ_RIGHT)
 
-    for Page in range(0,3): # ３ページ
+    for Page in range(0,2): # ２ページ
       PageKei = 0
 
       for RowCtr in range(0,17): # 各ページ17明細
@@ -223,9 +223,13 @@ class MainHandler(webapp2.RequestHandler):
         Hozyo,Yatin,Kyoeki,Kanri =  WDatMain.GetKingaku(Nengetu,SnapRec,RecYatinMst)
         Kingaku = Kanri
     elif Kubun == 2:   # 電気代
-      Siyoryo = WDatDenki.GetSiyoryo(SnapRec)
-      KeisanKubun,Comment,Kingaku = WDatDenki.GetKingaku2(Nengetu,SnapRec.Room,RecYatinMst.DenkiTanka,Siyoryo)
-      Kingaku = int(round(Kingaku,0))
+      if SnapRec.Comment == u"現金払い": # コメントが現金払いの人は対象外
+        Kingaku = 0
+      else:
+        Siyoryo = WDatDenki.GetSiyoryo(SnapRec)
+        KeisanKubun,Comment,Kingaku = WDatDenki.GetKingaku2(Nengetu,SnapRec.Room,RecYatinMst.DenkiTanka,Siyoryo)
+        Kingaku = int(round(Kingaku,0))
+      
     else:  # 水道光熱費
       if SnapRec.GenkinFlg == 1: # 現金フラグが立ってる人は０円
         Kingaku = 0

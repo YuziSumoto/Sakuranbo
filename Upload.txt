@@ -1,0 +1,10 @@
+D:
+CD D:\GAE_GitHub\Sakuranbo
+
+gcloud config set project polar-program-97805
+
+gcloud app deploy
+
+# gcloud app deploy index.yaml
+
+pause
